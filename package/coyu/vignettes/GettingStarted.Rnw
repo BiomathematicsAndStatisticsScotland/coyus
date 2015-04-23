@@ -1,0 +1,138 @@
+%\VignetteIndexEntry{Getting started with COYUs}
+\documentclass[a4paper]{article}
+
+\newcommand{\coyu}{\texttt{COYUs}}
+
+\title{Getting Started with the \coyu\ package}
+\author{Adrian Roberts and David Nutter}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+To run the COYU package, try first with the example datasets provided
+in the package directory. 
+
+For example:
+
+<<eval=FALSE>>=
+data(test_2_year,package="coyu")
+results1<-COYU_all_results(test_2_year$trial_data, 
+                           test_2_year$coyu_parameters, 
+                           test_2_year$probability_sets)[[1]]
+@ 
+%$
+
+This will give you a set of results to play with.
+
+There are other datasets available too, see 
+
+<<eval=FALSE>>=
+data(package="coyu")
+@ 
+
+for details.
+
+\section{Producing output}
+
+The \texttt{COYUs9AllResults} objects returned by
+\texttt{COYU\_all\_results} is not easy to work with. Some features of
+the package are intended to help users produce useful output and are
+discussed briefly below.
+
+\subsection{Plots}
+
+The function \texttt{COYU\_plot\_results} function is an S3 method
+designed to produced per-character diagnostic plots of the adjusted SD against the
+mean, for each year in the trial. 
+
+<<eval=FALSE>>=
+COYU_plot_results(results1, test_2_year$character_key, plot_file="myplot.pdf")
+@ 
+%$
+
+This will write all plots to the file "myplot.pdf", one page per character.
+
+If a file name is not supplied, the current default graphics device
+will be used.
+
+
+\subsection{Data frame}
+
+The package provides \texttt{COYU\_results\_as\_dataframe} to output
+the candidate uniformity, means and logSD values for each character
+and candidate variety in the results set. Use it like this:
+
+<<eval=FALSE>>=
+my_df = COYU_results_as_dataframe(results1)
+write.csv(my_df,file="test.csv")
+@ 
+
+\subsection{Printed output}
+
+Finally, the package provides a routine to format results sets in text
+format. This output format is designed primarily for use with the DUST
+variety trials application and reflects that heritage.
+
+You will find per-character results for both reference and candidate
+varieties, visual indication of non-uniform results, a summary table
+for the candidate varieties and keys for the symbols and character
+names. 
+
+Use this routine as follows
+
+<<eval=FALSE>>=
+COYU_print_results(results1, 
+                   test_2_year$coyu_parameters, 
+                   test_2_year$character_key, 
+                   test_2_year$probability_sets[1,])
+@ 
+%$
+
+The routine has an optional \texttt{connection} argument which may be
+used to provide a connection (opened with \texttt{file} to which to
+write the output. Otherwise output will appear on the console.
+
+\section{Formatting data for use}
+
+The COYU package provides a number of functions for preparing
+data. COYU\_data\_skeleton can make (and populate) a data frame
+containing data for a trial. For example:
+
+<<eval=FALSE>>=
+years=c(2011,2012)
+characters=c(1,2,3)
+varieties=c(10,11,12)
+COYU_data_skeleton(years,
+                   characters,
+                   varieties)
+@ 
+
+Or with measurement data:
+
+<<eval=FALSE>>=
+years=c(2011,2012)
+characters=c(1,2,3)
+varieties=c(10,11,12)
+fake_mean_data<-rbind(matrix(3,3,3),matrix(8,3,3))
+fake_stddev_data<-rbind(matrix(0.1,3,3),matrix(0.8,3,3))
+trial_data<-COYU_data_skeleton(years,
+                               characters,
+                               varieties,
+                               mean_data=fake_mean_data,
+                               stddev_data=fake_stddev_data)
+@
+
+You can also create your own dataframe following the same format. 
+
+Once you have data, you will need to create a parameter set for
+use. It's easiest to do this with the COYU\_parameters\_from\_df
+function which will infer all necessary parameters from a trial data
+frame and a list of candidate varieties:
+
+<<eval=FALSE>>=
+COYU_parameters_from_df(trial_data,c(10))
+@ 
+
+\end{document}

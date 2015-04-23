@@ -1,0 +1,37 @@
+* Tue Apr 21 2015 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.4-1
+- Restructure COYU routines to use data frames throughout to avoid
+  further ordering issues
+- Add additional testdata and testcases
+- Update install procedures to prefer local repository of packages
+- Candidate/reference variety order is same as order used in parameter
+  object
+
+* Tue Apr 7 2015 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.3-1
+- Attempt fix issues with data ordering in certain trials
+
+* Wed Nov 26 2014 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.2-1
+- Fix issues with data where IQR == 0 or negative values appear
+- Improve testcases to capture this
+
+* Wed Nov 12 2014 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.1-1
+- Fix problems with single character and single candidate trials
+- Improve testcases
+
+* Tue Oct 14 2014 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.0-3
+- Converted datasets to be compatible with data() function
+- Fix data ordering issues when missing values are present
+- Remove pval_below_alpha, fix candidate_not_uniform
+
+* Fri Oct 10 2014 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.0-2
+- Fix printing of symbols, means, removed reference mean comparison
+- Fixed ordering of plot data results to be same as others
+- Anonymised datasets given as examples by removing variety names
+- Remove ":" verdict 
+- Change output precision to 3 significant figures
+
+* Mon Oct 6 2014 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.0-1
+- Improve printed output
+- Fix spurious graphics device invocation and rework plot axes
+- Fix error in messages from COYU_sanity_check
+- Fix missing documentation warnings from R CMD CHECK
+ 

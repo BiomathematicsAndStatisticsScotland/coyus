@@ -1,0 +1,10 @@
+For completed items, see CHANGELOG
+
+* Getting Started Vignette is quite brief. Would be useful to specify
+  the data input requirements for COYU_all_results in detail.
+
+* Move num_trial_years and related checks from parameters to DUST code
+  as this parameter can easily be inferred
+
+* Obey output width and wrap tables at a sensible columns
+

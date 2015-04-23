@@ -1,0 +1,44 @@
+Package: coyu
+Type: Package
+Title: Over-Year Uniformity analysis for crop variety trials.
+Version: 1.4-1
+Date: 2015-04-21
+Author: Adrian Roberts <adrian.roberts@bioss.ac.uk>
+Maintainer: David Nutter <david.nutter@bioss.ac.uk>
+Description: Provides facilities to perform an Over-Year uniformity analysis.
+    Derived from the DUST9NT package.
+NeedsCompilation: no
+License: BSD_3_clause + file LICENSE
+Depends:
+    R (>= 3.0.0)
+Imports:
+    lme4 (>= 1.1),
+    splines,
+    MASS,
+    Matrix,
+    methods
+Collate:
+    'COYU_all_results.R'
+    'COYU_character_key.R'
+    'COYU_data_skeleton.R'
+    'COYU_parameters.R'
+    'COYU_plot_results.R'
+    'COYU_predictions.R'
+    'COYU_print_results.R'
+    'COYU_probability_set.R'
+    'COYU_results_to_dataframe.R'
+    'COYU_sanity_check.R'
+    'COYU_single_character.R'
+    'COYU_single_year.R'
+    'COYU_utilities.R'
+    'datasets.R'
+    'extract.R'
+    'find_matching_candidates.R'
+    'find_matching_reference.R'
+    'get_trial_years.R'
+    'get_varieties.R'
+    'is_year.R'
+    'pad_at_index.R'
+    'run_COYU.R'
+    'smooth_matrix.R'
+    'variety_matches.R'
