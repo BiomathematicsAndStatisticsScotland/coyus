@@ -60,6 +60,7 @@ COYU_all_results.COYUs9TrialData<-function(trial_data,coyu_parameters,probabilit
     class(intermediate_results) <- "COYUs9AllResults"
     return(intermediate_results)
   })
-  
+
+  class(results)<-list("COYUs9ResultsList","list")
   return(results)
 }
