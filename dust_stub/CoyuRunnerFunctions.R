@@ -37,7 +37,7 @@ resultsCOYU<-function(results,data_input,probability_set,connection="") {
 }
  
 formatResults<-function(data_input,results,con="") {
-  apply(data_input$probability_set,1,function(x) {
+  apply(data_input$probability_sets,1,function(x) {
     sapply(results,resultsCOYU,data_input,x,con)
   })
   return(results)
