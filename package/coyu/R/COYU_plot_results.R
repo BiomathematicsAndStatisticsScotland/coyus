@@ -116,6 +116,7 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
            pch=4)
       lines(year_result$x_line,
             year_result$y_line)
+      points(year_result$cand_mean, year_result$cand_logsd,pch="c",col="red") # new
     })
 
     #Force a page break in 3 year mode

@@ -1,8 +1,8 @@
 Package: coyu
 Type: Package
 Title: Over-Year Uniformity analysis for crop variety trials.
-Version: 1.4-1
-Date: 2015-04-21
+Version: 1.5-1
+Date: 2018-04-26
 Author: Adrian Roberts <adrian.roberts@bioss.ac.uk>
 Maintainer: David Nutter <david.nutter@bioss.ac.uk>
 Description: Provides facilities to perform an Over-Year uniformity analysis.
@@ -17,13 +17,14 @@ Imports:
     MASS,
     Matrix,
     methods
-Collate:
+Collate: 
     'COYU_all_results.R'
     'COYU_character_key.R'
     'COYU_data_skeleton.R'
     'COYU_parameters.R'
     'COYU_plot_results.R'
     'COYU_predictions.R'
+    'COYU_print_all_results.R'
     'COYU_print_results.R'
     'COYU_probability_set.R'
     'COYU_results_to_dataframe.R'
@@ -42,3 +43,4 @@ Collate:
     'run_COYU.R'
     'smooth_matrix.R'
     'variety_matches.R'
+RoxygenNote: 6.0.1

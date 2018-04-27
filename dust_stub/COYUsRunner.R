@@ -4,12 +4,14 @@ EXPECTED_R_VERSION<-"3.0.0"
 EXPECTED_PACKAGE_VERSION<-"1.4-1"
 PACKAGE_NAME<-"coyu"
 
+options(encoding="ISO-8859-1")
+
 source("setupFunctions.R")
 
 local_repo = get_repo_info(REPOSITORY_DIRECTORY)
 
 if (!is_valid_repo(local_repo)) {
-  stop(sprintf("Local package repostitory %s is not valid", local_repo_dir))
+  stop(sprintf("Local package repostitory '%s' is not valid\n", local_repo))
 } 
 
 if (compareVersion(as.character(getRversion()),EXPECTED_R_VERSION) == -1) {

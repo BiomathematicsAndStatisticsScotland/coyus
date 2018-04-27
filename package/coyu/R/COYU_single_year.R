@@ -118,8 +118,20 @@ COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   mse<-sum_sqrs/res.df
   Tred<-t(ginv(t(N))%*% t(Nn) ) 
   TT<- Tred%*% S %*% t(Tred)
-  wahba_regression_factor  <- diag(TT) 
+  wahba_regression_factor  <- diag(TT) #for candidates
+  
+  Tredr<-t(ginv(t(N))%*% t(N) ) # added 26/04/18
+  TTr<- Tredr%*% S %*% t(Tredr)  #added 26/04/18
+  wahba_regression_factor_ref  <- diag(TTr) #for reference vars # added 26/04/18
+  
+  min_factor_ref<- wahba_regression_factor_ref[dat.ref.i$mn==min(dat.ref.i$mn)][1] #added 26/04/18
+  max_factor_ref<- wahba_regression_factor_ref[dat.ref.i$mn==max(dat.ref.i$mn)][1] #added 26/04/18
+  
 
+  extrap_factor<-sqrt((wahba_regression_factor+1)/(min_factor_ref+1)*(dat.cand.i$mn<min(dat.ref.i$mn)) +
+    (wahba_regression_factor+1)/(max_factor_ref+1)*(dat.cand.i$mn>max(dat.ref.i$mn))) #added 26/04/18
+  is.na(extrap_factor)<-which(extrap_factor==0) #added 26/04/18
+  
   #Store diagnostic plot data for later use
   #Scale limits are calculated where this data is plotted.
   #
@@ -158,10 +170,11 @@ COYU_single_year<-function(yr.i,dat.ref,dat.cand){
 
   candidate_results <- cbind(dat.cand.i[c("year","variety","AFP","mn","logSD")],
                              adjusted_logSD=cand_adj_logSD,
-                             regression_factor=wahba_regression_factor)
+                             regression_factor=wahba_regression_factor,
+                             extrapolation_factor=extrap_factor) #modified 26/04/18
   
   reference_results <- cbind(dat.ref.i.full[c("year","variety","AFP","mn","logSD")],
-                             adjusted_logSD=ref_adj_logSD)
+                             adjusted_logSD=ref_adj_logSD) 
                                    
   #Return results 
   list(grand_mean=grand_mean,                   
