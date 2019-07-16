@@ -1,3 +1,9 @@
+* Tue Jul 16 2019 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.6-1
+- Improve error messages delivered to package users
+* Tue Apr 24 2018 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.5-1
+- Introduce explicit dependency on methods package
+- Add plotting and diagnostic data output including extrapolation and
+  regression factors
 * Tue Apr 21 2015 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.4-1
 - Restructure COYU routines to use data frames throughout to avoid
   further ordering issues
