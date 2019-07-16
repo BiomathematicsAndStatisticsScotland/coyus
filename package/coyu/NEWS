@@ -1,0 +1,21 @@
+NEWS
+
+COYU variety trial software in R using spline method
+
+VERSION HISTORY 
+
+1.6-1 
+
+Improvements to error messages when setting up COYUParameters and
+calling the COYU model.
+
+1.5-1
+
+Add plotting and diagnostic data output to aid in model evaluation
+
+1.4-1
+
+First public release with test cases. Versions prior to 1.4-1 were for
+internal testing only. 
+
+

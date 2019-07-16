@@ -68,9 +68,12 @@
 #' 
 #' @export
 COYU_data_skeleton <- function(years,characters,variety_afp,variety_name,mean_data,stddev_data) {
-
-  if (missing(years) || missing(characters) || missing(variety_afp)) {
-    stop("Required parameters missing")
+  missing_args = c(years=missing(years), characters=missing(characters),variety_afp=missing(variety_afp))
+  
+  if (any(missing_args)) {
+    stop(sprintf("Required parameters missing: %s",
+                 paste(names(missing_args[missing_args==TRUE]),
+                       collapse=",")))
   }
 
   characters<-unique(characters)

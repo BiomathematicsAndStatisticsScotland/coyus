@@ -1,8 +1,8 @@
 Package: coyu
 Type: Package
 Title: Over-Year Uniformity analysis for crop variety trials.
-Version: 1.5-1
-Date: 2018-04-26
+Version: 1.6-1
+Date: 2019-07-16
 Author: Adrian Roberts <adrian.roberts@bioss.ac.uk>
 Maintainer: David Nutter <david.nutter@bioss.ac.uk>
 Description: Provides facilities to perform an Over-Year uniformity analysis.

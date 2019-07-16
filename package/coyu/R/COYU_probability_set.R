@@ -68,12 +68,13 @@ COYU_probability_set<-function(reject_3_year=NULL,reject_2_year=NULL,accept_2_ye
 
   if (min(length(reject_2_year),length(reject_3_year),length(reject_3_year)) !=
       expected_size) {
-    stop("Arguments are of different lengths")
+    stop("Arguments to function COYU_probability_set are of different lengths")
   }
   contents<-c(reject_3_year,reject_2_year,accept_2_year)
 
-  if (any(contents < 0 | contents > 0.5)) {
-    stop("Arguments should be in range 0-0.5")
+  MAX_PROBABILITY = 0.5
+  if (any(contents < 0 | contents > MAX_PROBABILITY)) {
+    stop(sprintf("Arguments to function COYU_probability_set are probabilities and should be in the range 0 to %s",MAX_PROBABILITY))
   }
   
   ret<-matrix(contents,

@@ -1,7 +1,12 @@
 
 library(tools)
 
-#Find the path to this script. Inspired by: https://github.com/krlmlr/kimisc/blob/master/R/thisfile.R
+#TODO: add the getopt library to this and make it print out some debugging info.
+Sys.setenv(TAR="internal")
+
+### SCRIPT SETUP FOR PRODUCTION
+##Find the path to this script.
+##Inspired by: https://github.com/krlmlr/kimisc/blob/master/R/thisfile.R
 cmd_args_all <- commandArgs(trailingOnly = FALSE)
 cmd_args_trailing <- commandArgs(trailingOnly = TRUE)
 
@@ -20,19 +25,34 @@ if (length(this_file) > 0) {
 
 include_file<-file.path(script_dir,"..","dust_stub","setupFunctions.R")
 
-source(include_file)
-
 if (length(cmd_args_trailing) != 3) {
   stop('Usage: setupRepo.R "<download>" "<package version>" "<repository dir>"')
 }
 
-Sys.setenv(TAR="internal")
-
 download = cmd_args_trailing[1]
 pkg_ver = cmd_args_trailing[2]
 repo_root = cmd_args_trailing[3]
-  
-pkg_list <- pkg_and_deps("lme4")
+mirror = getOption("repos")
+### END SCRIPT SETUP FOR PRODUCTION USE
+
+### SCRIPT SETUP FOR TESTING - you can source the script with this uncommented
+## include_file = "/nfs/home/davidn/svn/davidn/trunk/code/coyu/dust_stub/setupFunctions.R"
+## download = "yes"
+## pkg_ver = 1.5-1
+## repo_root = "/tmp/repo-test"
+## mirror="https://www.stats.bris.ac.uk/R/"
+### END SCRIPT SETUP FOR TESTING
+
+if (mirror=="@CRAN@") {
+    stop("This script needs option \"repos\" set to a valid CRAN repository as it cannot pop up a mirror prompt as a normal interactive R session would use")
+} else {
+    message(sprintf("Using mirror '%s' for downloads", mirror))
+}
+    
+
+source(include_file)
+
+pkg_list <- pkg_and_deps("lme4", mirror=mirror)
 
 repo <- create_repo(get_repo_info(repo_root))
 
@@ -41,8 +61,8 @@ if (!is_valid_repo(repo)) {
 }
 
 if (download=="yes") {
-  download.packages(pkg_list,repo$src, type="source")
-  download.packages(pkg_list, get_win_repo_thisver(repo), type="win.binary")
+  download.packages(pkg_list,repo$src, type="source", repos=mirror)
+  download.packages(pkg_list, get_win_repo_thisver(repo), type="win.binary", repos=mirror)
 }
 
 pkg_names <- name_packages("coyu",pkg_ver)

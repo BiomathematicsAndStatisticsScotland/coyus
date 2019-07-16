@@ -42,7 +42,7 @@ name_stddev<-function(character_number) {
   if (is.numeric(character_number)) {
     return(sprintf("sUP%02d",character_number))
   }
-  stop(paste(character_number," is not numeric"))
+  stop(paste("character_number",character_number," is not numeric"))
 }
 
 #' name_stddev
@@ -57,7 +57,7 @@ name_mean<-function(character_number) {
   if (is.numeric(character_number)) {
     return(sprintf("UP%02d",character_number))
   }
-  stop(paste(character_number," is not numeric"))
+  stop(paste("character_number",character_number," is not numeric"))
 }
 
 

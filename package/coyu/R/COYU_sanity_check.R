@@ -205,12 +205,12 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
                                                     function(x) { any(is.na(x)) } ), ]
     
     if (nrow(valid_reference_means) < COYU_MIN_REFERENCE_VARIETIES) {
-      warning("Only ",nrow(valid_reference_means)," reference varieties with plot mean data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," required")
+      warning("Only ",nrow(valid_reference_means)," reference varieties with plot mean data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," are required")
       success <- FALSE
     }
 
     if (nrow(valid_reference_stddevs) < COYU_MIN_REFERENCE_VARIETIES) {
-      warning("Only ",nrow(valid_reference_stddevs)," reference varieties with stddev data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," required")
+      warning("Only ",nrow(valid_reference_stddevs)," reference varieties with stddev data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," are required")
       success <- FALSE
     }
     

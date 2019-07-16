@@ -51,10 +51,15 @@ COYU_parameters <- function(candidates,
            is.numeric(num_years))) {
     stop("All arguments to this function should be numeric")
   }
-  
-  if (length(candidates) >= length(references)) {
-     stop("Number of candidates >= number of reference varieties")
+
+  if (length(candidates) < 1) {
+    stop("No candidate varieties provided")
   }
+
+  if (length(references) < 1) {
+    stop("No reference varieties provided")
+  }
+  
   
   if (any(candidates %in% references)) { 
     stop("Some variety AFPs present in both references and candidates")

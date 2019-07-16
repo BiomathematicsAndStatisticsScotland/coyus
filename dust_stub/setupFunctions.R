@@ -51,9 +51,11 @@ name_packages <- function(pkg_name,version_string) {
 #http://stackoverflow.com/questions/21010705/update-a-specific-r-package-and-its-dependencies
 pkg_and_deps <- function(pkg,
                          which = c("Depends", "Imports", "LinkingTo"),
+                         mirror = getOption("repos"),
                          inc_pkg = TRUE) {
   stopifnot(require("tools"))
-  ap <- available.packages() ## takes a minute on first use
+  message(sprintf("Obtaining available packages from %s - this can be slow - please wait", mirror))
+  ap <- available.packages(repos=mirror) ## takes a minute on first use
 
   deps <- package_dependencies(pkg, db = ap, which = which, recursive = TRUE)
   
