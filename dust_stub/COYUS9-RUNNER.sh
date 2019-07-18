@@ -1,5 +1,7 @@
 #!/bin/sh
 
+MYDIR=`readlink -f $(dirname $0)/`
+
 COYU9DAT=$1
 
 if [ -z "$COYU9DAT" ]; then
@@ -14,5 +16,5 @@ fi
 
 echo "Running with $COYU9DAT"
 
-Rscript  --default-packages=datasets,utils,grDevices,graphics,stats,methods --vanilla COYUsRunner.R "$COYU9DAT" "VBERRORS.DAT"
+Rscript  --default-packages=datasets,utils,grDevices,graphics,stats,methods --vanilla "$MYDIR/COYUsRunner.R" "$COYU9DAT" "VBERRORS.DAT"
 

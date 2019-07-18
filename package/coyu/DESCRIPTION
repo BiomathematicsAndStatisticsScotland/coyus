@@ -5,8 +5,7 @@ Version: 1.6-1
 Date: 2019-07-16
 Author: Adrian Roberts <adrian.roberts@bioss.ac.uk>
 Maintainer: David Nutter <david.nutter@bioss.ac.uk>
-Description: Provides facilities to perform an Over-Year uniformity analysis.
-    Derived from the DUST9NT package.
+Description: Provides facilities to  perform a Combined-Over-Years uniformity analysis (COYU) using the spline method.
 NeedsCompilation: no
 License: BSD_3_clause + file LICENSE
 Depends:

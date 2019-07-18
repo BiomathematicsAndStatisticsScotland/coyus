@@ -130,8 +130,7 @@ COYU_single_character<-function(character_number,
   # now to work out means for candidates - for now only using AFP as
   #aggregation variable as variety names are not consistent across
   #years. Could make them consistent if desired
-  
-  cand_means <- aggregate(cbind(mn,logSD,adjusted_logSD,regression_factor)~AFP, merged_cand_results, mean)
+  cand_means <- aggregate(cbind(mn,logSD,adjusted_logSD,regression_factor,extrapolation_factor)~AFP, merged_cand_results, mean, na.action=na.pass)
   cand_means$candidate_varieties=dat.cand$variety[match(cand_means$AFP,dat.cand$AFP)]
   cand_means$SE_cand_one_spl_Wah = sqrt(resid.var.spline*(1+ cand_means$regression_factor)/n.yr)
   cand_means$pval_cand_spl = 1-pt(
@@ -195,13 +194,14 @@ COYU_single_character<-function(character_number,
   #Assemble candidate results and set names to something "friendly", order columns sensibly
   final_cand_results <- merge(cand_means,aggregate(extrapolation~AFP,extrapolation_detect,max))
   names(final_cand_results)<-c("candidate_afp", "candidate_means", "candidate_actual_logSD",
-                               "candidate_adjusted_logSD", "regression_factor", "candidate_varieties",
+                               "candidate_adjusted_logSD",
+                               "regression_factor", "extrapolation_factor", "candidate_varieties",
                                "candidate_prediction_err", "candidate_COYU_pvalue", "extrapolation")
   
   results$candidates<-final_cand_results[,c("candidate_afp","candidate_varieties","candidate_means",
                                             "candidate_actual_logSD", "candidate_adjusted_logSD",
                                             "candidate_prediction_err", "candidate_COYU_pvalue",
-                                            "extrapolation")]
+                                            "extrapolation","regression_factor","extrapolation_factor")]
   
   class(results)<-c("COYUs9Results",list)
   return(results)
