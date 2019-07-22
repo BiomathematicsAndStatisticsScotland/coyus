@@ -44,6 +44,8 @@
 #'
 #' @seealso COYU_data_skeleton
 #' @export
+#' @importFrom stats IQR
+#' @importFrom utils combn
 COYU_sanity_check<-function(trial_data,coyu_parameters) UseMethod("COYU_sanity_check")
 
 

@@ -32,6 +32,7 @@
 
 #' @import lme4
 #' @import Matrix
+#' @importFrom stats aggregate na.pass predict pt sigma
 COYU_single_character<-function(character_number,
                                 dat.ref,
                                 dat.cand){
@@ -115,8 +116,18 @@ COYU_single_character<-function(character_number,
   merged_ref_results<-merge(dat.ref, do.call("rbind", yearly_results["ref_results",1:n.yr]))
   merged_cand_results<-merge(dat.cand, do.call("rbind", yearly_results["cand_results",1:n.yr]))
   
-  #Note: problems with visibility of dat.ref in lmer() call, hence pulled out into separate variables
-  vcanal<-lmer(adjusted_logSD~year+(1|AFP), REML=TRUE, data=merged_ref_results) # CHANGE need to check function is stable with likely data
+  ## Note: problems with visibility of dat.ref in lmer() call, hence
+  ## pulled out into separate variables
+
+  ## CHANGE need to check function is stable with likely data.
+  ## 2nd Change: add control function to remove warning when VC is 0
+  vcanal<-lmer(adjusted_logSD~year+(1|AFP),
+               REML=TRUE,
+               data=merged_ref_results,
+               control=lmerControl(
+                   check.conv.singular =.makeCC(action = "ignore",
+                                                tol = 1e-4))
+               ) 
   vcanal.vc<-as.numeric(VarCorr(vcanal)[1]) #CHANGE
   vcanal.sig2<-(sigma(vcanal))^2 #CHANGE
   
@@ -130,7 +141,25 @@ COYU_single_character<-function(character_number,
   # now to work out means for candidates - for now only using AFP as
   #aggregation variable as variety names are not consistent across
   #years. Could make them consistent if desired
-  cand_means <- aggregate(cbind(mn,logSD,adjusted_logSD,regression_factor,extrapolation_factor)~AFP, merged_cand_results, mean, na.action=na.pass)
+
+  ##OLD VERSION
+  ##cand_means <- aggregate(cbind(mn,logSD,adjusted_logSD,regression_factor,extrapolation_factor)~AFP, merged_cand_results, mean, na.action=na.pass)
+
+  ##NEW VERSION  
+  ##Extract candidate means and max extrapolation factors for each candicate
+  cand_means1 = aggregate(cbind(mn,logSD,adjusted_logSD,regression_factor)~AFP,
+                         merged_cand_results, mean, na.action=na.pass)
+    
+  merged_cand_resultsnoNA = merged_cand_results
+  merged_cand_resultsnoNA$extrapolation_factor[
+       is.na(merged_cand_resultsnoNA$extrapolation_factor)]=0
+    
+  cand_means2 = aggregate(extrapolation_factor~AFP,
+                         merged_cand_resultsnoNA, max)
+  cand_means = merge(cand_means1, cand_means2,all.x=T)
+  is.na(cand_means$extrapolation_factor) = which(cand_means$extrapolation_factor==0)
+  ##END NEW VERSION
+    
   cand_means$candidate_varieties=dat.cand$variety[match(cand_means$AFP,dat.cand$AFP)]
   cand_means$SE_cand_one_spl_Wah = sqrt(resid.var.spline*(1+ cand_means$regression_factor)/n.yr)
   cand_means$pval_cand_spl = 1-pt(
@@ -152,13 +181,25 @@ COYU_single_character<-function(character_number,
 
     #Uses predict.merMod
     if (length(missing_data_index)==0) {
-      results<-predict(lmer(model,REML=TRUE,data=merged_ref_results),
+      results<-predict(lmer(model,
+                            REML=TRUE,
+                            data=merged_ref_results,
+                            control=lmerControl(
+                                check.conv.singular =.makeCC(action = "ignore",
+                                                             tol = 1e-4))
+                            ),
                        newdata=data.frame(AFP=as.factor(reference_afp)),
                        re.form=~0)
 
     } else {
      results[-missing_data_index]<-
-       predict(lmer(model,REML=TRUE,data=merged_ref_results),
+       predict(lmer(model,
+                    REML=TRUE,
+                    data=merged_ref_results,
+                    control=lmerControl(
+                        check.conv.singular =.makeCC(action = "ignore",
+                                                     tol = 1e-4))
+                    ),
                newdata=data.frame(AFP=as.factor(reference_afp[-missing_data_index])),
                re.form=~0)
 
@@ -193,6 +234,7 @@ COYU_single_character<-function(character_number,
   
   #Assemble candidate results and set names to something "friendly", order columns sensibly
   final_cand_results <- merge(cand_means,aggregate(extrapolation~AFP,extrapolation_detect,max))
+    
   names(final_cand_results)<-c("candidate_afp", "candidate_means", "candidate_actual_logSD",
                                "candidate_adjusted_logSD",
                                "regression_factor", "extrapolation_factor", "candidate_varieties",
@@ -201,7 +243,7 @@ COYU_single_character<-function(character_number,
   results$candidates<-final_cand_results[,c("candidate_afp","candidate_varieties","candidate_means",
                                             "candidate_actual_logSD", "candidate_adjusted_logSD",
                                             "candidate_prediction_err", "candidate_COYU_pvalue",
-                                            "extrapolation","regression_factor","extrapolation_factor")]
+                                            "extrapolation", "extrapolation_factor")]
   
   class(results)<-c("COYUs9Results",list)
   return(results)

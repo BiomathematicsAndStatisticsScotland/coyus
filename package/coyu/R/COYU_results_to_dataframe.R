@@ -51,7 +51,7 @@ COYU_results_as_dataframe.COYUs9AllResults<-function(results,alpha_name=first_da
   rownames(output_results)<-c("character","result")
 
   target_columns=c("candidate_varieties","candidate_afp",
-    "extrapolation","regression_factor","extrapolation_factor",
+    "extrapolation","extrapolation_factor",
     "candidate_means","candidate_actual_logSD","candidate_adjusted_logSD",
     "candidate_COYU_pvalue","candidate_prediction_err","candidate_coyu_threshold",
     "candidate_not_uniform")

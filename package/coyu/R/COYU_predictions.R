@@ -44,6 +44,7 @@
 #' @return COYUs9Predictions object
 #
 #' @export
+#' @importFrom stats qt 
 COYU_predictions<-function(coyu_results,alpha=0.05) {
 
   candidate_coyu_threshold<-

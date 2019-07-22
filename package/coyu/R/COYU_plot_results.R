@@ -40,6 +40,8 @@
 #' @param plot_file File name to plot to. If NULL, current graphics device is used. 
 #'
 #' @export
+#' @importFrom grDevices dev.off pdf
+#' @importFrom graphics plot lines points plot.new title par
 COYU_plot_results <- function(results,character_key,plot_options=1,plot_file=NULL) UseMethod("COYU_plot_results")
 
 

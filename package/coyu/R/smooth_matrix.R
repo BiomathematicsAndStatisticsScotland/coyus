@@ -1,4 +1,3 @@
-smooth_matrix <- function(x, spar ){
 # Copyright (c) 2015, Biomathematics and Statistics Scotland
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,6 +29,8 @@ smooth_matrix <- function(x, spar ){
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#' @importFrom stats predict smooth.spline IQR
+smooth_matrix <- function(x, spar ){
   n <- length(x)
   A <- matrix(0, n, n)
   

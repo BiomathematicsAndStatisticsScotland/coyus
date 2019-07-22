@@ -54,6 +54,7 @@ globalVariables(c("AFP"))
 #' row 6 contains the reference results dataframe (dataframe, as dat.ref with extra columns in AFP order)
 #'
 #' @import MASS
+#' @importFrom stats smooth.spline predict 
 COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   
 # TODO: the nature of this function means that there is a lot of
