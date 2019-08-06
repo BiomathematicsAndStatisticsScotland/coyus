@@ -120,10 +120,11 @@ anonymiseDataset.DustData <- function(data_file,anonymise_afp=FALSE,anonymise_na
 
 readUFile<-function(name,target_dir=".") {
       
-  #NOTE/TODO: There are 2 different UX formats. Original COYU9 fortran
-  #doesn't seem to handle the single-year case so we won't either
-
-  #Relativise path as best we can 
+    ## NOTE/TODO: There are 2 different UX formats. Original COYU9 fortran
+    ## doesn't seem to handle the single-year case so we won't either
+    
+    ## TODO: strip whitespace from all string data read from this file
+    ## Relativise path as best we can 
 
   con <- NULL
   
@@ -293,13 +294,13 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
     header$num_characters<-num_characters
     header$num_replicates<-num_replicates
     header$num_plants_per_plot<-num_plants_per_plot
-    
+
     varieties<-read.fortran(con,
                             c("4X","I6","A12"),
                             n=num_varieties,
                             col.names=c("AFP","variety"))
     varieties$variety=gsub("[[:space:]]*$","",varieties$variety)
-    
+
     characters<-read.fortran(con,
                              c("I4","A8"),
                              n=num_characters,
@@ -309,11 +310,11 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
     
     header$character_key<-list(characters)
     
-                                        #Read actual data into a matrix
+    ## Read actual data into a matrix
 
-                                        #Note: cannot rely at this stage on either AFP number OR variety
-                                        #name being unique so we simply have these as columns in the dateset
-                                        #rather than rownames  
+    ## Note: cannot rely at this stage on either AFP number OR variety
+    ## name being unique so we simply have these as columns in the dateset
+    ## rather than rownames  
     character_data<-matrix(scan(con,n=num_varieties*num_characters,quiet=TRUE),
                            nrow=num_varieties,
                            ncol=num_characters,
@@ -328,7 +329,7 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
     }
   })
 
-  #-1 (or less) is apparently the code for missing values; this is not documented in the DUST manual
+  ## -1 (or less) is apparently the code for missing values; this is not documented in the DUST manual
   character_data[character_data<=-1]=NA
   
   file_data<-data.frame(cbind(varieties,character_data))

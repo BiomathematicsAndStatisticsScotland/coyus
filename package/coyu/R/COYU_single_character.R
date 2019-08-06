@@ -1,4 +1,3 @@
-#' @import methods
 # Copyright (c) 2015, Biomathematics and Statistics Scotland
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,8 +29,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#' COYU_single_character
+#'
+#' Run the COYU algorithm for a single character, over all years. 
+#'
+#' @param character_number Number of the character we're working on
+#' @param dat.ref  Reference data, in form documented in COYU_data_skeleton for COYUs9TrialData
+#' @param dat.cand Candidate data, in form documented in COYU_data_skeleton for COYUs9TrialData
+#' @return Named list with class "COYUs9Results". Format is not yet stable so is not documented
+#' 
 #' @import lme4
 #' @import Matrix
+#' @import methods
 #' @importFrom stats aggregate na.pass predict pt sigma
 COYU_single_character<-function(character_number,
                                 dat.ref,
@@ -107,8 +116,7 @@ COYU_single_character<-function(character_number,
   extrapolation_detect$extrapolation <- as.numeric(extrapolation_detect$mn < extrapolation_detect$MIN |
                                                    extrapolation_detect$mn > extrapolation_detect$MAX)
     
-  # send data off to spline and linear fit
-  
+  # send data off to spline and linear fit  
   yearly_results<-sapply(1:n.yr, COYU_single_year, dat.ref=dat.ref, dat.cand=dat.cand)
   
   # output in yearly_results is a matrix 6 sets of info x n.yr years
@@ -227,7 +235,7 @@ COYU_single_character<-function(character_number,
   results$grand_mean=rowMeans(as.data.frame(yearly_results["grand_mean",1:n.yr]))
   results$spline_df=res.df.spline
   results$reference_mean_logSD=mn.adj.logSD.ref.spl
-  results$plot_data=yearly_results["plot_data",1:n.yr]
+  results$mean_sd_data=yearly_results["mean_sd_data",1:n.yr]
   results$anova=anova_data
   results$reference=final_ref_results
 

@@ -50,12 +50,12 @@ is_2_year<-function(coyu_obj) {
 
 #'@export
 is_2_year.COYUs9Results<-function(coyu_obj) {
-  return(length(coyu_obj$plot_data) == 2)
+  return(length(coyu_obj$mean_sd_data) == 2)
 }
 
 #'@export
 is_3_year.COYUs9Results<-function(coyu_obj) {
-  return(length(coyu_obj$plot_data) == 3)
+  return(length(coyu_obj$mean_sd_data) == 3)
 }
 
 #'@export

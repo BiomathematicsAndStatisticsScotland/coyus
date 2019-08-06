@@ -1,4 +1,3 @@
-#' @import splines
 # Copyright (c) 2015, Biomathematics and Statistics Scotland
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -49,18 +48,28 @@ globalVariables(c("AFP"))
 #' row 2 gives the error sum of squares (within year) for the spline method (single value)
 #' row 3 gives the effective degrees of freedom for the spline method (incl intercept) candidates
 #'       based on the linear regression method (single value)
-#' row 4 contains diagnostic plot data for each year. (dataframe ,in AFP order)
+#' row 4 contains mean and SD data as a named list. Format as follows:
+#'       year         Name of the year
+#'       x_line       Diagnostic plot X values (mean, predicted) 
+#'       y_line       Diagnostic plot Y values (sd, predicted)
+#'       ref_mean     Reference means for this year, in AFP order 
+#'       ref_logsd    Reference SD values for this year, in AFP order
+#'       cand_mean    Candidate mean values for this year, in AFP order
+#'       cand_logsd   Candidate SD values for this year, in AFP order
 #' row 5 contains the candidate results dataframe (dataframe, as dat.cand with extra columns in AFP order)
 #' row 6 contains the reference results dataframe (dataframe, as dat.ref with extra columns in AFP order)
 #'
+#' @seealso COYU_plot_results
 #' @import MASS
+#' @import splines
 #' @importFrom stats smooth.spline predict 
 COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   
 # TODO: the nature of this function means that there is a lot of
 # recalculation (e.g. grand mean and so on) Work out what does not
-# change across runs and calculate that elsewhere #
+# change across runs and calculate that elsewhere
 
+    
   yr<-levels(dat.ref$year)
   dat.cand.i<-dat.cand[dat.cand$year==yr[yr.i],]
   dat.ref.i<-dat.ref.i.full<-dat.ref[dat.ref$year==yr[yr.i],] # changed 04.09.14
@@ -75,24 +84,24 @@ COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   dat.cand.i<-dat.cand.i[order_cand_by_mean,]
   
   # fit natural spline with fixed df using smooth.spline
-  obj <- smooth.spline(dat.ref.i$mn,dat.ref.i$logSD, all.knots = TRUE,df = 4)
-  Y.fit<-predict(obj,dat.ref.i$mn)$y 
-  Ynew.fit<-predict(obj,dat.cand.i$mn)$y
+  ref_variety_spline <- smooth.spline(dat.ref.i$mn,dat.ref.i$logSD, all.knots = TRUE,df = 4)
+  Y.fit<-predict(ref_variety_spline,dat.ref.i$mn)$y 
+  Ynew.fit<-predict(ref_variety_spline,dat.cand.i$mn)$y
   cand_adj_logSD<-grand_mean+dat.cand.i$logSD-Ynew.fit
 
 
   #Fix for data containing missing values for means - 21.04.15
   Y.fit.full<-numeric(length=length(dat.ref.i.full$mn)) 
-  Y.fit.full[!is.na(dat.ref.i.full$mn)]<-predict(obj,dat.ref.i.full[!is.na(dat.ref.i.full$mn),]$mn)$y 
+  Y.fit.full[!is.na(dat.ref.i.full$mn)]<-predict(ref_variety_spline,dat.ref.i.full[!is.na(dat.ref.i.full$mn),]$mn)$y 
   is.na(Y.fit.full)<-which(is.na(dat.ref.i.full$mn)) 
 
   ref_adj_logSD<-grand_mean+dat.ref.i.full$logSD-Y.fit.full 
   
   # next bit get stuff for working out SEs -
   # TODO: - separate function for this? Seems unrelated to most other stuff in COYU_single_year
-  eff_df_spline<-obj$df
-  spar1<-obj$spar
-  knots <- obj$fit$knot * obj$fit$range + obj$fit$min
+  eff_df_spline<-ref_variety_spline$df
+  spar1<-ref_variety_spline$spar
+  knots <- ref_variety_spline$fit$knot * ref_variety_spline$fit$range + ref_variety_spline$fit$min
   k1<-unique(knots)
   k1<-k1[2:(length(k1)-1)] 
   design.out <- ns(x=dat.ref.i$mn,
@@ -132,17 +141,14 @@ COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   extrap_factor<-sqrt((wahba_regression_factor+1)/(min_factor_ref+1)*(dat.cand.i$mn<min(dat.ref.i$mn)) +
     (wahba_regression_factor+1)/(max_factor_ref+1)*(dat.cand.i$mn>max(dat.ref.i$mn))) #added 26/04/18
   is.na(extrap_factor)<-which(extrap_factor==0) #added 26/04/18
-  
-  #Store diagnostic plot data for later use
-  #Scale limits are calculated where this data is plotted.
-  #
-  #Sort plot_data values into AFP order to match other results (sorted
-  #in factor order)
-  #
-  #N.B the use of bareword "AFP" below generates a spurious NOTE in R
-  #CMD CHECK. We suppress this by using globalVariables("AFP") at the
-  #top of this file  
-  ref_sorted <- dat.ref.i[with(dat.ref.i,order(AFP)),]
+      
+  ## Sort reference and candidate values into AFP order to match other
+  ## results (sorted in factor order)
+   
+  ## N.B the use of bareword "AFP" below generates a spurious NOTE in R
+  ## CMD CHECK. We suppress this by using globalVariables("AFP") at the
+  ## top of this file  
+  ref_sorted <- dat.ref.i.full[with(dat.ref.i.full,order(AFP)),]  
   cand_sorted <- dat.cand.i[with(dat.cand.i,order(AFP)),]
   
   ref_mean <- ref_sorted$mn
@@ -154,15 +160,18 @@ COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   names(ref_sd)<-ref_sorted$AFP
   names(cand_mean)<-cand_sorted$AFP
   names(cand_sd)<-cand_sorted$AFP
-  
-  Xnewplot<-seq(min(dat.ref.i$mn),
+
+  ## TODO: Could return ref_variety_spline instead of calculating the
+  ## mean SD plot data here, then no need to return the mean and SD
+  ## data twice (in mean_sd_data and cand_results/ref_results)
+  ref_mean_plot_x<-seq(min(dat.ref.i$mn),
                 max(dat.ref.i$mn),
                 length.out=1000)
   
-  sd_plot_data=list(
+  mean_sd_data=list(
     year=yr[yr.i],
-    x_line=Xnewplot,
-    y_line=predict(obj,Xnewplot)$y,
+    x_line=ref_mean_plot_x,
+    y_line=predict(ref_variety_spline, ref_mean_plot_x)$y,
     ref_mean=ref_mean,
     ref_logsd=ref_sd,
     cand_mean=cand_mean,
@@ -181,7 +190,7 @@ COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   list(grand_mean=grand_mean,                   
        sum_sqrs=sum_sqrs,                       
        eff_df_spline=eff_df_spline,             
-       plot_data=sd_plot_data,                  
+       mean_sd_data=mean_sd_data,
        cand_results=candidate_results[with(candidate_results,order(AFP)),], 
        ref_results=reference_results[with(reference_results,order(AFP)),])  
 }

@@ -92,24 +92,28 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
       character_name <- sprintf("%d",char_result$character_number)
     }
     
-    #Find maxima and minima across x and y scales for each character
-    minmax_x<-sapply(char_result$plot_data,function(year_result) {
-      return(c(min(c(year_result$ref_mean,year_result$cand_mean)),
-               max(c(year_result$ref_mean,year_result$cand_mean))))
+    #Find maxima and minima across x and y scales for each character, ignoring missing values
+    minmax_x<-sapply(char_result$mean_sd_data,function(year_result) {
+      return(c(min(c(year_result$ref_mean,year_result$cand_mean), na.rm=TRUE),
+               max(c(year_result$ref_mean,year_result$cand_mean), na.rm=TRUE)))
     })
 
-    minmax_y<-sapply(char_result$plot_data,function(year_result) {
-      return(c(min(c(year_result$ref_logsd,year_result$cand_logsd)),
-               max(c(year_result$ref_logsd,year_result$cand_logsd))))      
+    minmax_y<-sapply(char_result$mean_sd_data,function(year_result) {
+      return(c(min(c(year_result$ref_logsd,year_result$cand_logsd), na.rm=TRUE),
+               max(c(year_result$ref_logsd,year_result$cand_logsd), na.rm=TRUE)))      
     })
-
+    
     #Add a bit of extra space to each limit
     character_xlim=c(min(minmax_x)*0.95,max(minmax_x)*1.05)
     character_ylim=c(min(minmax_y)*0.95,max(minmax_y)*1.05)    
     
-    year_plot_result<-sapply(char_result$plot_data,function(year_result) {
-      plot(year_result$ref_mean,
-           year_result$ref_logsd,
+    year_plot_result<-sapply(char_result$mean_sd_data,function(year_result) {
+      #Filter out any missing values
+      filtered_sd=year_result$ref_logsd[!is.na(year_result$ref_logsd)]
+      filtered_mean=year_result$ref_mean[names(filtered_sd)]
+      
+      plot(filtered_mean,
+           filtered_sd,
            xlim=character_xlim,
            ylim=character_ylim,
            xlab="Mean",
@@ -127,5 +131,5 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
       plot.new()
     }
     
-    title(sprintf("Character '%s'  (%d)",character_name,char_result$character_number), outer=TRUE)
+    title(sprintf("Character '%s'  (%d)",gsub("^\\s+|\\s+$", "", character_name),char_result$character_number), outer=TRUE)
 }
