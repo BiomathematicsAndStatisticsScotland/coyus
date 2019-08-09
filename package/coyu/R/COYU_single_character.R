@@ -107,7 +107,7 @@ COYU_single_character<-function(character_number,
   extrapolation_detect <- merge(dat.cand,
                                 data.frame(year=levels(dat.cand$year),
                                            aggregate(mn~year,
-                                                     dat.ref,
+                                                     dat.ref[!is.na(dat.ref$logSD),],
                                                      function(x) {
                                                        c(MIN=min(x), MAX=max(x)) })$mn)
                                 )

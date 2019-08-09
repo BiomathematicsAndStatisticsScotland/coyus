@@ -2,7 +2,7 @@ Package: coyu
 Type: Package
 Title: Over-Year Uniformity analysis for crop variety trials
 Version: 1.6.2-9000
-Date: 2019-07-16
+Date: 2019-08-08
 Author: Adrian Roberts <adrian.roberts@bioss.ac.uk>
 Maintainer: David Nutter <david.nutter@bioss.ac.uk>
 Description: Provides facilities to perform a Combined-Over-Years uniformity analysis (COYU) using the spline method.

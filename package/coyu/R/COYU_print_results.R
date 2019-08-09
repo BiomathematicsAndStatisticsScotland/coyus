@@ -177,16 +177,16 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
   return(yearly_summary)
 }
 
-print_between_plant_summary<-function(summary_data,summary_symbols,connection="") {
+print_between_plant_summary<-function(summary_data,summary_symbols, postprocess=function(x) { x }, connection="") {
   variety_names<-rownames(summary_data)
   col_count<-ncol(summary_data)
   for (row in 1:nrow(summary_data)) {
     afp<-strip_numeric_factor(summary_data[row,"AFP"])
-    
+
     cat(sprintf("%8d %-12s",afp,variety_names[row]),        
-        sprintf("%12.3g%-2s",
-                as.numeric(as.vector(summary_data[row,2:col_count])),
-                as.character(summary_symbols[row,2:col_count])),
+        postprocess(sprintf("%12.3g%-2s",
+                            as.numeric(as.vector(summary_data[row,2:col_count])),
+                            as.character(summary_symbols[row,2:col_count]))),
         "\n",
         file=connection
         )
@@ -356,7 +356,10 @@ COYU_print_results.COYUs9AllResults<-function(results,
 
       write("CANDIDATE\n",file=connection)
 
-      print_between_plant_summary(char_summary$candidate_summary, char_summary$candidate_symbols, connection)
+      print_between_plant_summary(char_summary$candidate_summary,
+                                  char_summary$candidate_symbols,
+                                  postprocess=function(x) { gsub("NA", "- ",x) },
+                                  connection)
 
       cat(sprintf("\n%-34s", "REFERENCE MEANS"),
           sprintf("%14.3g", as.numeric(char_summary$reference_means[1:2])),
@@ -365,7 +368,10 @@ COYU_print_results.COYUs9AllResults<-function(results,
       
       write("\nREFERENCE\n",file=connection)
       
-      print_between_plant_summary(char_summary$reference_summary, char_summary$reference_symbols, connection)
+      print_between_plant_summary(char_summary$reference_summary,
+                                  char_summary$reference_symbols,
+                                  postprocess=function(x) { gsub("NA", "  ",x) },
+                                  connection)
 
       
       write("\n", file=connection)
