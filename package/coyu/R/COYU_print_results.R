@@ -183,7 +183,7 @@ print_between_plant_summary<-function(summary_data,summary_symbols, postprocess=
   for (row in 1:nrow(summary_data)) {
     afp<-strip_numeric_factor(summary_data[row,"AFP"])
 
-    cat(sprintf("%8d %-12s",afp,variety_names[row]),        
+    cat(sprintf("%8s %-12s",afp,variety_names[row]),        
         postprocess(sprintf("%12.3g%-2s",
                             as.numeric(as.vector(summary_data[row,2:col_count])),
                             as.character(summary_symbols[row,2:col_count]))),
@@ -199,7 +199,7 @@ print_candidate_uniformity <- function(uniformity_data,connection="") {
   for (row in 1:nrow(uniformity_data)) {
     afp<-strip_numeric_factor(uniformity_data[row,"AFP"])
     
-    cat(sprintf(" %8d %-12s",
+    cat(sprintf(" %8s %-12s",
                 afp,
                 variety_names[row]),        
         sprintf("%5.3g  ",
