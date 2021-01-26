@@ -37,6 +37,21 @@
 #' @param results COYUs9AllResults object
 #' @param alpha_name Optional. Name of the dataset to transform (e.g. "2_year_reject"). If not provided first_dataset will be used to find a dataset. 
 #' @return data frame containing the results of interest
+#' @examples
+#' ## an example using the test_2_year example included in the COYU package
+#' 
+#' data(test_2_year,package="coyu") 
+#' 
+#' results1<-COYU_all_results(test_2_year$trial_data,test_2_year$coyu_parameters,test_2_year$probability_sets)[[1]]
+#' ## note [[1]] selects the results for the first probability set
+#' 
+#' COYU_print_results(results1, test_2_year$coyu_parameters, test_2_year$character_key, test_2_year$probability_set[1,])
+#' ## note test_2_year$probability_set[1,] gives the probabilities for this set
+#' 
+#' write.csv(COYU_results_as_dataframe(results1, "2_year_reject"), "tester.csv")
+#' 
+#' COYU_plot_results(results1, character_key = test_2_year$character_key, plot_file="MyPlots.pdf")
+#' ## results sent to a pdf file.
 #'
 #' @export                                        
 COYU_results_as_dataframe <- function(results,alpha_name=first_dataset(results)) {
@@ -45,16 +60,16 @@ COYU_results_as_dataframe <- function(results,alpha_name=first_dataset(results))
 
 #'@export
 COYU_results_as_dataframe.COYUs9AllResults<-function(results,alpha_name=first_dataset(results)) {
-
+  
   #Select results we're interested in
   output_results<-as.matrix(results[c("character",alpha_name), ])
   rownames(output_results)<-c("character","result")
-
+  
   target_columns=c("candidate_varieties","candidate_afp",
-    "extrapolation","extrapolation_factor",
-    "candidate_means","candidate_actual_logSD","candidate_adjusted_logSD",
-    "candidate_COYU_pvalue","candidate_prediction_err","candidate_coyu_threshold",
-    "candidate_not_uniform")
+                   "extrapolation","extrapolation_factor",
+                   "candidate_means","candidate_actual_logSD","candidate_adjusted_logSD",
+                   "candidate_COYU_pvalue","candidate_prediction_err","candidate_coyu_threshold",
+                   "candidate_not_uniform")
   
   do.call(rbind,
           apply(output_results,2,function(x) {
