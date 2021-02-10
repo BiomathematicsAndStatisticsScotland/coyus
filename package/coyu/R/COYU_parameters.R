@@ -86,7 +86,22 @@ COYU_parameters <- function(candidates,
 #' Other parameters (characters,references etc) are set to include all relevant
 #' data in the data frame - i.e. references is all the varieties less the ones designated as candidates
 #'
-#' Example: COYU_parameters_from_df(my_trial_data,c(51,7))
+#' `sum`
+#'
+#' @examples
+#' COYU_parameters_from_df(my_trial_data,c(51,7))
+#' #################
+#' 
+#' years=c(2011,2012)
+#' characters=c(1,2,3)
+#' varieties=c(10,11,12)
+#' COYU_data_skeleton(years, characters, varieties)
+#' fake_mean_data<-rbind(matrix(3,3,3), matrix(8,3,3))
+#' fake_stddev_data<-rbind(matrix(0.1,3,3), matrix(0.8,3,3))
+#' trial_data<-COYU_data_skeleton(years, characters, varieties, mean_data = fake_mean_data, stddev_data = fake_stddev_data)
+#' COYU_parameters_from_df(trial_data,c(10))
+#' y=COYU_probability_set(reject_3_year = c(0.05,0.02,0.01), reject_2_year = c(0.05,0.02,0.01), accept_2_year = c(0.1,0.05,0.02))
+#' COYU_sanity_check(trial_data = trial_data, coyu_parameters = COYU_parameters_from_df(trial_data,c(10)))
 #' 
 #' @export
 COYU_parameters_from_df <- function(trial_data,candidates) UseMethod("COYU_parameters_from_df")
@@ -126,3 +141,4 @@ COYU_parameters_from_df.COYUs9TrialData <- function(trial_data,candidates) {
 
   return(COYU_parameters(candidates,references,characters,num_years))
 }
+

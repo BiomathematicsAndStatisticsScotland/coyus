@@ -43,4 +43,4 @@ Collate:
     'run_COYU.R'
     'smooth_matrix.R'
     'variety_matches.R'
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
