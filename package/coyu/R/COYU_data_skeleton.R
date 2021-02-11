@@ -35,8 +35,8 @@
 #' adding measurement data as well.
 #'
 #' @param years Vector of 4-digit year values. The vector length is the number of years.
-#' @param characters Vector of numeric character identities. These may be numbers of any length but the printed output will only allow characters of up to 4 digits in length. The vector length is the number of years.
-#' @param variety_afp Vector of numeric variety AFP numbers. These are unique numerical identifiers for the varieties. The vector length is the number of varieties.
+#' @param characters Vector of numeric character identities. These may be numbers of any length but the printed output will only allow characters of up to 4 digits in length. The vector length is the number of years
+#' @param variety_afp Vector of numeric variety AFP numbers. These are unique numerical identifiers for the varieties. The vector length is the number of varieties
 #' @param variety_name Optional. If not provided variety names will be created from variety_afp. The vector length is the number of varieties.
 #' @param mean_data Optional. Matrix of mean data with row by col dimensions as specified below. If not provided, NA will be substituted for the plot mean data
 #' @param stddev_data Optional. Matrix of standard deviation data with row by col dimensions as specified below. If not provided NA will be substituted for the stddev data
@@ -70,17 +70,30 @@
 #' Missing data is allowed for reference/control varieties but candidate varieties are expected to have data in all years
 #' 
 #' @seealso COYU_all_results COYU_sanity_check COYU_probability_set
+#' 
 #' @examples 
+#' ## working example with faked data
+#' 
 #' years=c(2011,2012)
+#' 
 #' characters=c(1,2,3)
+#' 
 #' varieties=c(10,11,12)
+#' 
 #' COYU_data_skeleton(years, characters, varieties)
+#' 
 #' fake_mean_data<-rbind(matrix(3,3,3), matrix(8,3,3))
+#' 
 #' fake_stddev_data<-rbind(matrix(0.1,3,3), matrix(0.8,3,3))
+#' 
 #' trial_data<-COYU_data_skeleton(years, characters, varieties, mean_data = fake_mean_data, stddev_data = fake_stddev_data)
+#' 
 #' COYU_parameters_from_df(trial_data,c(10))
+#' 
 #' y=COYU_probability_set(reject_3_year = c(0.05,0.02,0.01), reject_2_year = c(0.05,0.02,0.01), accept_2_year = c(0.1,0.05,0.02))
+#' 
 #' COYU_sanity_check(trial_data = trial_data, coyu_parameters = COYU_parameters_from_df(trial_data,c(10)))
+#' 
 #' @export
 COYU_data_skeleton <- function(years,characters,variety_afp,variety_name,mean_data,stddev_data) {
   missing_args = c(years=missing(years), characters=missing(characters),variety_afp=missing(variety_afp))

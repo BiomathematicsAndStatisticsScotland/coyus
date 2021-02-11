@@ -34,25 +34,30 @@
 #'
 #' Wrapper function to carry out the COYU analysis. The function processes 
 #' trial data and parameters to produce a raw results set. The results object 
-#' can be printed using COYU_print_results
+#' can be printed using `COYU_print_results`.
 #'
-#' @param trial_data COYUs9TrialData object
-#' @param coyu_parameters COYUs9Parameters object
-#' @param probability_sets COYUs9ProbabilitySet
-#' @return COYUs9AllResults object
+#' @param trial_data `COYUs9TrialData` object
+#' @param coyu_parameters `COYUs9Parameters` object
+#' @param probability_sets `COYUs9ProbabilitySet` object
+#' @return `COYUs9AllResults` object
 #'
 #' @seealso COYU_sanity_check COYU_parameters_from_df COYU_probability_sets COYU_plot_results COYU_print_results COYU_results_as_dataframe
 #'
-#' @examples 
+#' @examples
+#' ## an example using the test_2_year example included in the COYU package
+#' 
 #' data(test_2_year,package="coyu") 
-#' # from example data set in package
+#' 
 #' results1<-COYU_all_results(test_2_year$trial_data,test_2_year$coyu_parameters,test_2_year$probability_sets)[[1]]
-#' # note [[1]] selects the results for the first probability set
+#' ## note [[1]] selects the results for the first probability set
+#' 
 #' COYU_print_results(results1, test_2_year$coyu_parameters, test_2_year$character_key, test_2_year$probability_set[1,])
-#' # note test_2_year$probability_set[1,] gives the probabilities for this set
+#' ## note test_2_year$probability_set[1,] gives the probabilities for this set
+#' 
 #' write.csv(COYU_results_as_dataframe(results1, "2_year_reject"), "tester.csv")
+#' 
 #' COYU_plot_results(results1, character_key = test_2_year$character_key, plot_file="MyPlots.pdf")
-#' # results sent to a pdf file.
+#' ## results sent to a pdf file.
 #'
 #' @export
 
