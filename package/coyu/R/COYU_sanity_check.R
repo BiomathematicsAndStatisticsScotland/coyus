@@ -40,6 +40,29 @@
 #'
 #' @param trial_data        Data frame containing trial data (should have class COYUs9TrialData)
 #' @param coyu_parameters   Parameter set object with type COYUs9Parameters
+#' @examples 
+#' ## working example with faked data
+#' 
+#' years=c(2011,2012)
+#' 
+#' characters=c(1,2,3)
+#' 
+#' varieties=c(10,11,12)
+#' 
+#' COYU_data_skeleton(years, characters, varieties)
+#' 
+#' fake_mean_data<-rbind(matrix(3,3,3), matrix(8,3,3))
+#' 
+#' fake_stddev_data<-rbind(matrix(0.1,3,3), matrix(0.8,3,3))
+#' 
+#' trial_data<-COYU_data_skeleton(years, characters, varieties, mean_data = fake_mean_data, stddev_data = fake_stddev_data)
+#' 
+#' COYU_parameters_from_df(trial_data,c(10))
+#' 
+#' y=COYU_probability_set(reject_3_year = c(0.05,0.02,0.01), reject_2_year = c(0.05,0.02,0.01), accept_2_year = c(0.1,0.05,0.02))
+#' 
+#' COYU_sanity_check(trial_data = trial_data, coyu_parameters = COYU_parameters_from_df(trial_data,c(10)))
+#' 
 #' @return TRUE if the trial data and parameters pass the sanity check, false otherwise
 #'
 #' @seealso COYU_data_skeleton
@@ -55,12 +78,12 @@ COYU_MIN_COMMON_REFERENCE_VARIETIES <- 8
 
 #' @export
 COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
-
+  
   if (missing(trial_data) || missing(coyu_parameters)) {
     warning("Missing arguments. Aborting check.")
     return(FALSE)
   }
-
+  
   if (! "COYUs9Parameters" %in% class(coyu_parameters)) {
     warning("coyu_parameters does not have type \"COYUs9Parameters\". Aborting check")
     return(FALSE)
@@ -69,7 +92,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
   #N.B: this function is rather large and could be usefully split up
   
   success <- TRUE
-
+  
   # check that basic colnames exist; if not abort immediately
   required_names <- c("year","AFP","variety")
   missing_cols <- setdiff(required_names,colnames(trial_data))
@@ -94,17 +117,17 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     warning("trial_data$year is not a factor")
     success <- FALSE
   }
-
+  
   if (!is.factor(trial_data$AFP)) {
     warning("trial_data$AFP is not a factor")
     success <- FALSE
   }
-
+  
   if ( !(is.character(trial_data$variety) || is.factor(trial_data$variety)) ) {
     warning("trial_data$variety is not a character variable or factor")
     success <- FALSE
   }
-
+  
   #Check data types in columns
   numeric_columns <- sapply(expected_names,function(x) { is.numeric(trial_data[,x]) })
   if (!all(numeric_columns)) {
@@ -123,9 +146,9 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
                   num_trial_years))
     success <- FALSE
   }
-
+  
   if (coyu_parameters$num_trial_years < 1 || coyu_parameters$num_trial_years > 3) {
-     warning(paste("COYUs9 requires that the number of trial years must be in range 1-3. The parameters specify ",
+    warning(paste("COYUs9 requires that the number of trial years must be in range 1-3. The parameters specify ",
                   coyu_parameters$num_trial_years))
     success <- FALSE
   }
@@ -134,7 +157,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     warning("Number of trial years in parameters is different from number of trial years in dataset")
     success <- FALSE
   }
-
+  
   data_cand<-get_varieties(trial_data,coyu_parameters$candidates)
   data_ref<-get_varieties(trial_data,coyu_parameters$references) 
   
@@ -147,7 +170,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     warning("Number of candidates is not the same. Value by year=",n_cand_byyear," by level=",n_cand_bylevel)
     success <- FALSE
   }
-
+  
   
   #FOREACH year ensure 10 reference varieties without missing plot mean data, negative values or anything else horrible
   for (year in levels(trial_data$year)) {
@@ -164,7 +187,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     
     candidates_year <- get_varieties(trial_data[trial_data$year==year,], variety_afp=coyu_parameters$candidates)
     reference_year <- get_varieties(trial_data[trial_data$year==year,], variety_afp=coyu_parameters$references)
-
+    
     character_means <- name_mean(coyu_parameters$characters)
     character_stddevs <- name_stddev(coyu_parameters$characters)
     
@@ -173,22 +196,22 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
       warning("Candidate varieties ",paste(missing_candidates,collapse=",")," are not present in data for year ",year)
       success <- FALSE
     }
-
+    
     if (any(is.na(candidates_year))) {
       warning("Missing data for candidates in year ",year)
       success <- FALSE
     }
-
+    
     if (any(candidates_year[,c(character_means,character_stddevs)] < 0, na.rm=TRUE)) {
       warning("Negative candidate measurement values in year ",year)
       success <- FALSE
     }
-
+    
     if (any(reference_year[,c(character_means,character_stddevs)] < 0, na.rm=TRUE)) {
       warning("Negative reference measurement values in year ",year)
       success <- FALSE
     }
-
+    
     #Check IQR for all characters, for both candidate and reference. A value of 0 will cause subsequent code to fail so we exit
     #For single-character trials, we don't perform the IQR check as it doesn't make sense
     if (nrow(candidates_year) > 1) {
@@ -210,17 +233,17 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
       warning("Only ",nrow(valid_reference_means)," reference varieties with plot mean data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," are required")
       success <- FALSE
     }
-
+    
     if (nrow(valid_reference_stddevs) < COYU_MIN_REFERENCE_VARIETIES) {
       warning("Only ",nrow(valid_reference_stddevs)," reference varieties with stddev data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," are required")
       success <- FALSE
     }
     
   }
-
+  
   if ( num_trial_years > 1) {
-
-   #Generate pairs of years and check at least 8 reference varieties without missing data in common between pairs of years
+    
+    #Generate pairs of years and check at least 8 reference varieties without missing data in common between pairs of years
     
     year_pair_check<-
       combn(levels(trial_data$year), 2,
@@ -241,7 +264,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
                 success<<-FALSE
               }
               
-       
+              
               return(length(common_varieties))    
             })
   } else {
