@@ -1,3 +1,5 @@
+* Wed Feb 10 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.7-1 
+- Integrate documentation changes
 * Tue Jul 16 2019 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.6-1
 - Improve error messages delivered to package users
 * Tue Apr 24 2018 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.5-1
