@@ -25,6 +25,7 @@ module constants
   !to the Windows limits for now
   integer, parameter :: PATH_MAX=255 
   integer, parameter :: CMD_LENGTH=2040
+  character(len=*),parameter::ERROR_FILE="VBERRORS.DAT"
 end module
 
 module functions
@@ -39,10 +40,9 @@ contains
     if (path(1:1) .eq. "/") then
        get_path_separator="/" !Unix
     else
-       get_path_separator="\\" !Otherwise assume windows
+       get_path_separator='\\' !Otherwise assume windows
     end if
     
-    get_path_separator=path(1:1)
   end function get_path_separator
 end module
 
@@ -63,6 +63,13 @@ subroutine get_file_directory(path, resolved_path)
        character(len=1,kind=c_char), intent(in) :: path(*)
        character(len=1,kind=c_char), intent(out) :: resolved_path(*)
      end function realpath
+     function fullpath(resolved_path, path, max_path) bind(c,name="_fullpath")
+       use, intrinsic :: iso_c_binding
+       type(c_ptr) :: fullpath
+       character(len=1,kind=c_char), intent(in) :: path(*)
+       character(len=1,kind=c_char), intent(out) :: resolved_path(*)
+       integer(kind=C_SIZE_T), intent(in) :: max_path
+      end function fullpath 
 
      function dirname(path) bind(c, name="dirname")
        use, intrinsic :: iso_c_binding
@@ -83,7 +90,8 @@ subroutine get_file_directory(path, resolved_path)
 
  
 
-  ptr=realpath(path, a)
+  !ptr=realpath(path, a)
+  ptr=fullpath(a, path, PATH_MAX)
   ptr=dirname(a)
 
   !Determine the first null char, copying the full path across as we go
@@ -95,6 +103,25 @@ subroutine get_file_directory(path, resolved_path)
   end do
 end subroutine get_file_directory
 
+subroutine write_error_file(error_msg)
+  use constants
+  implicit none
+
+  logical :: error_file_exists
+  character (len=*),intent(in) :: error_msg
+
+  !Write our errors to ERROR_FILE
+  inquire(file=ERROR_FILE, exist=error_file_exists)
+  if (error_file_exists) then
+    open(unit=1, file=ERROR_FILE, status="old", position="append", action="write")
+  else
+    open(unit=1, file=ERROR_FILE, status="new", action="write")
+  end if
+  write(1, *) TRIM(error_msg)
+  close(1)
+
+end subroutine
+
 program COYUsRunner
   use constants
   use functions
@@ -103,41 +130,80 @@ program COYUsRunner
   !Constants for invoking fortran code.
   character(len=*),parameter::R_EXECUTABLE="Rscript"
   character(len=*),parameter::R_FILE="COYUsRunner.R"
+  !character(len=*),parameter::COYU_INPUT_FILE="COYU9.DAT"
   character(len=*),parameter::COYU_INPUT_FILE="COYUs9.DAT"
-  character(len=*),parameter::ERROR_FILE="VBERRORS.DAT"
 
   !Required to ensure methods is loaded on startup otherwise lme4 package won't work.
   character(len=*),parameter::R_PACKAGES=" --default-packages=datasets,utils,grDevices,graphics,stats,methods"
   character(len=1) path_separator
-
+  integer, parameter::EFFECTIVE_PATH_MAX = PATH_MAX - LEN(R_FILE)
 
   character(len=CMD_LENGTH) cmdline !Could also be allocatable
+  character(len=CMD_LENGTH) error_msg
   integer status
+  integer dust_home_is_set
+  logical coyu_input_file_exists
 
   character(len=PATH_MAX)::exe_location,exe_dir
-  character(len=PATH_MAX),parameter::test_loc = "/home/scratch/coyu/coyus/dust_stub"
 
   path_separator=get_path_separator()
 
   call get_command_argument(0, exe_location)  
   call get_file_directory(exe_location, exe_dir)
-  
-  cmdline= R_EXECUTABLE // R_PACKAGES // " --vanilla "  // TRIM(exe_dir) // path_separator // R_FILE &
-// " " // COYU_INPUT_FILE // " " // ERROR_FILE
+ 
+  if (LEN_TRIM(exe_dir) == 0) then
+    call getcwd(exe_dir)
+  end if 
 
-!exe_dir // path_separator //
-  write(*,*) TRIM(cmdline)
-  !call exit(0)
+  if (LEN_TRIM(exe_dir) >= PATH_MAX) then
+    error_msg=""
+    write(error_msg, 96) PATH_MAX, TRIM(exe_dir)
+    call write_error_file(error_msg)
+    call exit(1)
+  end if
+96 format("COYUs9.exe: path to directory too long (>=",I3," chars. Path: ",A,"'")
 
-  !status = system(TRIM(cmdline))
-  call execute_command_line(cmdline, exitstat=status)
+  inquire(file=COYU_INPUT_FILE, exist=coyu_input_file_exists)
+  if ( .not. coyu_input_file_exists ) then
+    error_msg=""
+    call getcwd(exe_dir)
+    write(error_msg, 97) COYU_INPUT_FILE, TRIM(exe_dir)
+    call write_error_file(error_msg)
+    call exit(1)
+97 format("COYUs9.exe: input file ",A," does not exist. cwd=",A)
+  end if
 
-  if (status .ne. 0) then 
-    write(*,99) status,cmdline
-99 format("COYUsRunner: system call failed with '",I4,"'. Cmdline is '",A200,"'")
- end if
+  !Check if our environment looks sensible. A better way would be to actually check the existence of the R install/Rscript.exe
+  !It may also be possible to move the environmental setup into this FORTRAN program and dispense with ExecuteDustShell.bat but this may not be
+  !desirable as it makes it harder to test alterations to the environnent, use a different R install and so on. 
+  call get_environment_variable("DUST_HOME", status=dust_home_is_set)
+  if (dust_home_is_set .eq. 1) then
+    error_msg="COYUs9.exe: Environment variable DUST_HOME is not set\n\n"//&
+              &"DUST must be run via the shortcut in the Windows Start Menu for module COYUS9 to operate."&
+              &"Do not run Dus.exe directly." 
+    call write_error_file(error_msg)
+    call exit(1)
+  end if
 
- call exit(status)
+  cmdline= R_EXECUTABLE // R_PACKAGES // " --vanilla "  // '"' // TRIM(exe_dir) // path_separator &
+// R_FILE // '"' // " " // COYU_INPUT_FILE // " " // ERROR_FILE
+
+  error_msg=""
+  write(error_msg, 98) TRIM(cmdline)
+  call write_error_file(error_msg)
+98 format("COYUs9.exe: invoking R with '",A,"'")
+
+  call execute_command_line(TRIM(cmdline), exitstat=status)
+
+  if (status .ne. 0) then
+    error_msg="" 
+    write(error_msg,99) status,TRIM(cmdline)
+    call write_error_file(error_msg)
+
+99 format("COYUs9.exe: system call failed with '",I4,"'. Cmdline is '",A,"'")
+  end if
+
+  call exit(status)
 end program
 
 

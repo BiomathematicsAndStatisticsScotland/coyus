@@ -3,7 +3,9 @@
 #load_all("package/coyu")
 library(coyu)
 
-source("IORoutines.R")
+script_dir = dirname(sys.frame(1)$ofile)
+
+source(file.path(script_dir, "IORoutines.R"))
 
 formatTrialHeader<-function(header) {
   return(sprintf("%02d%01d%02d%02d %s",header$crop_type,header$site,header$trial_year,header$trial_type,header$trial_title))

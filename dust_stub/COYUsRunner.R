@@ -6,44 +6,10 @@ PACKAGE_NAME<-"coyu"
 
 options(encoding="ISO-8859-1")
 
-source("setupFunctions.R")
+initial_args <- commandArgs(trailingOnly = FALSE)
 
-local_repo = get_repo_info(REPOSITORY_DIRECTORY)
-
-if (!is_valid_repo(local_repo)) {
-  stop(sprintf("Local package repostitory '%s' is not valid\n", local_repo))
-} 
-
-if (compareVersion(as.character(getRversion()),EXPECTED_R_VERSION) == -1) {
-  stop(sprintf("The version of R you have %s is older than the minimum supported version %s",
-               getRversion(),
-               EXPECTED_R_VERSION))
-}
-
-#Try local package repository first
-if (!is_package_installed(PACKAGE_NAME,EXPECTED_PACKAGE_VERSION)) {
-  print(sprintf("Installing %s from local repository %s", PACKAGE_NAME, local_repo$root))
-  install.packages(PACKAGE_NAME,
-                   repo=sprintf("file:%s",local_repo$root),
-                   dependencies=c("Depends", "Imports", "LinkingTo"),
-                   quiet=TRUE)
-}
-
-#Now try to get dependencies from CRAN if the package still isn't installed
-if (!is_package_installed(PACKAGE_NAME,EXPECTED_PACKAGE_VERSION)) {
-  print("Local install failed. Trying alternative method")
-  pkg_file<-find_first_package(local_repo, PACKAGE_NAME, EXPECTED_PACKAGE_VERSION)
-
-  if (!is_package_installed("lme4")) {
-    print("Installing lme4 from CRAN")
-    install.packages("lme4",dependencies=c("Depends", "Imports", "LinkingTo"))
-  }
-
-  print(sprintf("Installing package file %s", pkg_file))
-  install.packages(pkg_file,repos=NULL,quiet=TRUE)
-}
-
-source("CoyuRunnerFunctions.R")
+file_arg_name = "--file="
+script_dir = dirname(sub(file_arg_name, "", initial_args[grep(file_arg_name, initial_args)]))
 
 args <- commandArgs(trailingOnly = TRUE)
 input_file<-args[1]
@@ -53,21 +19,33 @@ if (is.null(error_file)) {
   error_file="COYUsRunnerErrors.DAT"
 }
 
-if (!file.exists(input_file)) {
+source(file.path(script_dir, "CoyuRunnerFunctions.R"))
+
+if (!file.exists(winVirtStoreLocateFileToRead(input_file))) {
   stop(sprintf("COYUsRunner: File '%s' does not exist",input_file))
 }
+
+error_file=winVirtStoreLocateFileToWrite(error_file)
 
 has_errors<-FALSE
 current_dir<-getwd() 
 status=0
+warnings_list=list()
 
-#TODO: improve error handling in readCoyu9 and print informative messages to VBErrors.DAT
+capture_warnings <- function() {
+    if (length(warnings_list) > 1) {
+        warnings_text = paste(sapply(warnings_list, function(x) { sprintf("Problem: %s", conditionMessage(x) )}), collapse="\n")
+        #See documentation for "call" in R for details of how to format conditionCall. Example: capture.output(conditionCall(x))
+    } else {
+        warnings_text = ""
+    }
+    return(warnings_text)
+}
+
  withCallingHandlers(
           {
-            
-            setwd(dirname(input_file))
-            data_input<-readCoyu9File(basename(input_file))            
-            setwd(current_dir)
+
+            data_input<-readCoyu9File(input_file)
             
             results<-COYU_all_results(data_input$trial_data,
                                       data_input$coyu_parameters,
@@ -84,21 +62,38 @@ status=0
             results_df = COYU_results_as_dataframe(results[[1]])
             write.csv(results_df,file=data_input$csv_file)
           },
+          warning=function(w) {
+              new_w = warnings_list
+              new_w[[length(new_w)+1]] =w
+              warnings_list <<- new_w
+              #invokeRestart("muffleWarning")
+          },     
           error=function(e) {
             has_errors<<-TRUE
             raw_calls<-sys.calls()
             #Get the stack trace as something we can write(), losing
             #the last 2 elements of the stack as that's this error
-            #handler           
-            calls<-capture.output(raw_calls[1:(length(raw_calls)-2)])
-           
-            writeErrorFile(paste("R Error ocurred. Stack trace:\n\n",paste(calls,collapse="\n")),
+            #handler.
+            #
+            #Also, if stack is "long", lose the first frame to save space in DUST's crappy error dialog...
+            if (length(raw_calls) > 4) {
+                calls<-capture.output(raw_calls[2:(length(raw_calls)-2)])
+            } else {
+                calls<-capture.output(raw_calls[1:(length(raw_calls)-2)])
+            }
+
+            warnings_text = capture_warnings()
+            
+            stack_text = paste(warnings_text, "\n", "R Error ocurred. Stack trace:\n\n",paste(calls,collapse="\n"))
+
+            writeErrorFile(stack_text,
                            errorFile=error_file)
             status<-1
           })
 
 if (!has_errors) {
-  writeErrorFile(" FORTRAN COMPLETED OK",errorFile=error_file)
+  warnings_text=capture_warnings()
+  writeErrorFile(paste(" FORTRAN COMPLETED OK","\n",warnings_text),errorFile=error_file)
 }
 
 quit(save="no",status=status)

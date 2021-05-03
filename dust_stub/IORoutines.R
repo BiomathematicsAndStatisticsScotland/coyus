@@ -24,7 +24,7 @@ writeCoyu9File<-function(input_file,
                          output_width=0) {
   probability_set_count<-length(probability_sets)
 
-  con<-file(name,open="w")
+  con<-file(winVirtStoreLocateFileToWrite(name),open="w")
   write(input_file,file=con)
   write(output_file,file=con)
   write(sprintf("%2d %2d %2d",probability_set_count,plot_options,output_width),file=con)
@@ -42,6 +42,40 @@ closeIfOpen <- function(con) {
   }
 }
 
+isAbsolutePath<-function(input_path) {
+  #Borrowed largely from R.utils...
+  input_path=as.character(input_path)
+  if (length(input_path) <= 0L) {
+    input_path="."
+  }
+
+  nPathnames=length(input_path)
+  if (nPathnames == 0L) 
+        return(logical(0L))
+    if (nPathnames > 1L) {
+        res <- sapply(input_path, FUN = isAbsolutePath, ...)
+        return(res)
+    }
+    if (is.na(input_path)) 
+        return(FALSE)
+    if (regexpr("^~", input_path) != -1L) 
+        return(TRUE)
+    if (regexpr("^.:(/|\\\\)", input_path) != -1L) 
+        return(TRUE)
+    components <- strsplit(input_path, split = "[/\\]")[[1L]]
+    if (length(components) == 0L) 
+        return(FALSE)
+    (components[1L] == "")
+}
+
+pathRelativeToTargetDir<-function(input_path, target_dir=".") {
+  if (isAbsolutePath(input_path)) {
+    return(input_path)
+  }
+
+  return(file.path(target_dir, input_path))
+}
+
 readCoyu9File<-function(name) {
   #Problems reading decimal values in locales other than en_gb (due to use of commas as decimal separator)
   
@@ -50,12 +84,13 @@ readCoyu9File<-function(name) {
   con <- NULL
   
   tryCatch({
-    con<-file(name,open="r")
+    con<-file(winVirtStoreLocateFileToRead(name),open="r")
 
     data_file<-list()
-    data_file$input_file<-readLines(con,1)
-    data_file$output_file<-readLines(con,1)
+    data_file$input_file<-pathRelativeToTargetDir(readLines(con,1), target_dir=target_dir)
+    data_file$output_file<-winVirtStoreLocateFileToWrite(pathRelativeToTargetDir(readLines(con,1), target_dir=target_dir))
 
+    
     output_dir = dirname(data_file$output_file)
     
     trial_id=gsub("^(\\w+).*\\.DAT$","\\1",basename(data_file$input_file),ignore.case=TRUE,perl=TRUE)
@@ -118,6 +153,66 @@ anonymiseDataset.DustData <- function(data_file,anonymise_afp=FALSE,anonymise_na
   return(data_file)
 }
 
+winVirtStoreLocateFileToRead<-function(target_path) {
+  if (.Platform$OS.type!="windows") {
+    return(target_path)
+  }
+  
+  #Logic: if the equivalent path in the VirtualStore exists, use that, otherwise use the 
+  #target path. This allows for files "overwritten" by other parts of the DUST system to be used
+  remapped_path = winVirtStoreConvertPath(target_path)
+  
+  if (file.exists(remapped_path)) {
+    return(remapped_path)
+  }
+  return(target_path)
+}
+
+winVirtStoreLocateFileToWrite<-function(target_path) {
+  if (.Platform$OS.type!="windows") {
+    return(target_path)
+  }
+  
+  #Logic: if target_file/dir exists and is writable, use that. 
+  #Otherwise use the equivalen path in VirtualStore
+  target_dir=dirname(target_path)
+  if (dir.exists(target_dir)) {
+    if (file.exists(target_path)) {
+      if (file.access(target_path, mode=2)==0) {
+        return(target_path)
+      }
+    } else if (file.access(target_dir, mode=2)==0) {
+      return(target_path)
+    }
+    
+    remapped_path = winVirtStoreConvertPath(target_path)
+    remapped_dir = dirname(remapped_path)
+    dir.create(remapped_dir, showWarnings=FALSE, recursive=TRUE)
+    return(remapped_path)
+  } else {
+    error(sprintf("Directory %s for file %s does not exist",target_dir, target_path))
+  }  
+}
+
+winVirtStoreConvertPath=function(target_path) {
+  virt_store_path=winVirtStoreGetRoot()
+  
+  remapped_path = file.path(virt_store_path,
+                            gsub("^\\w+:/","",
+                                normalizePath(target_path, 
+                                              winslash=.Platform$file.sep,
+                                              mustWork=FALSE)))
+  
+  return(remapped_path)
+}
+
+winVirtStoreGetRoot<-function() {
+  #Get the root of the windows VirtualStore for this user
+  return(normalizePath(file.path(gsub("\\\\","/",Sys.getenv("LOCALAPPDATA")),"VirtualStore"),
+                       winslash=.Platform$file.sep,
+                       mustWork=FALSE))
+}
+
 readUFile<-function(name,target_dir=".") {
       
     ## NOTE/TODO: There are 2 different UX formats. Original COYU9 fortran
@@ -136,7 +231,7 @@ readUFile<-function(name,target_dir=".") {
   
   tryCatch({
     
-    con<-file(name,open="r")
+    con<-file(winVirtStoreLocateFileToRead(name),open="r")
 
     
     header<-as.list(read.fortran(con,
@@ -278,7 +373,7 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
   con <- NULL
   
   tryCatch({
-    con<-file(name,open="r")
+    con<-file(winVirtStoreLocateFileToRead(name),open="r")
 
     header<-read.fortran(con,
                          c("I2","I1","I2","I2","A1","A72"),
