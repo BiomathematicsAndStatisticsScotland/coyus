@@ -12,6 +12,8 @@
 ! to other compilers is desired the use EXECUTE_COMMAND_LINE (Fortran
 ! 2008 or simply convert this program to C - latter is probably
 ! easier.
+! 
+! In addition the Win32 API is required (for fullpath support)
 !
 ! David Nutter 20/03/2014
 !
@@ -19,11 +21,12 @@
 
 
 module constants
+  use, intrinsic :: iso_c_binding
   implicit none
 
-    !Ideally we'd pull these from limits.h or w32api but we'll just set them 
+  !Ideally we'd pull these from limits.h or w32api but we'll just set them 
   !to the Windows limits for now
-  integer, parameter :: PATH_MAX=255 
+  integer(kind=C_SIZE_T), parameter :: PATH_MAX=255 
   integer, parameter :: CMD_LENGTH=2040
   character(len=*),parameter::ERROR_FILE="VBERRORS.DAT"
 end module
