@@ -33,11 +33,17 @@ endif
 ifeq ($(PLATFORM), Linux )
 OUT_TARBALL=$(PACKAGE)_$(VERSION)_R_$(RPLATFORM).tar.gz
 OTHER_PLATFORMS=$(MAC_PKG_NAME) $(WIN_PKG_NAME)
+PLATFORM_KNOWN:=1
 endif 
 
-ifeq ($(PLATFORM), MINGW32_NT-6.1 )
+ifeq ($(PLATFORM), MINGW32_NT-6.2 )
 OUT_TARBALL=$(PACKAGE)_$(VERSION).zip
 OTHER_PLATFORMS=$(MAC_PKG_NAME)
+PLATFORM_KNOWN:=1
+endif
+
+ifndef PLATFORM_KNOWN
+$(error Platform $(PLATFORM) is unknown)
 endif 
 
 eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
@@ -101,6 +107,9 @@ test: testme.Rbatch
 
 check: doc.stamp $(SOURCE_TARBALL)
 	R CMD check $(SOURCE_TARBALL)
+
+cran_check: doc.stamp $(SOURCE_TARBALL)
+	R CMD check --as-cran $(SOURCE_TARBALL)
 
 #Clean out the Vignette PDFs otherwise the build process collects them up
 $(SOURCE_TARBALL): $(MOST_RECENT) doc.stamp

@@ -42,24 +42,34 @@
 #' 
 #' data(test_2_year,package="coyu") 
 #' 
-#' results1<-COYU_all_results(test_2_year$trial_data,test_2_year$coyu_parameters,test_2_year$probability_sets)[[1]]
+#' results1<-COYU_all_results(test_2_year$trial_data,
+#'                            test_2_year$coyu_parameters,
+#'                            test_2_year$probability_sets)[[1]]
 #' ## note [[1]] selects the results for the first probability set
 #' 
-#' COYU_print_results(results1, test_2_year$coyu_parameters, test_2_year$character_key, test_2_year$probability_set[1,])
+#' COYU_print_results(results1,
+#'                    test_2_year$coyu_parameters,
+#'                    test_2_year$character_key,
+#'                    test_2_year$probability_set[1,])
 #' ## note test_2_year$probability_set[1,] gives the probabilities for this set
 #' 
-#' write.csv(COYU_results_as_dataframe(results1, "2_year_reject"), "tester.csv")
+#' write.csv(COYU_results_as_dataframe(results1, "2_year_reject"),
+#'           "tester.csv")
 #' 
-#' COYU_plot_results(results1, character_key = test_2_year$character_key, plot_file="MyPlots.pdf")
+#' COYU_plot_results(results1,
+#'                   character_key = test_2_year$character_key,
+#'                   plot_file="MyPlots.pdf")
 #' ## results sent to a pdf file.
 #'
 #' @export                                        
-COYU_results_as_dataframe <- function(results,alpha_name=first_dataset(results)) {
+COYU_results_as_dataframe <- function(results,
+                                      alpha_name=first_dataset(results)) {
   UseMethod("COYU_results_as_dataframe")
 }
 
 #'@export
-COYU_results_as_dataframe.COYUs9AllResults<-function(results,alpha_name=first_dataset(results)) {
+COYU_results_as_dataframe.COYUs9AllResults<-function(results,
+                                                     alpha_name=first_dataset(results)) {
   
   #Select results we're interested in
   output_results<-as.matrix(results[c("character",alpha_name), ])

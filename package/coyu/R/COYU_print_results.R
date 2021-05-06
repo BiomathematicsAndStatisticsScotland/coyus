@@ -271,7 +271,10 @@ COYU_print_results_to_string<-function(results,
                                        character_key,
                                        probability_set,                         
                                        verbose=TRUE) {
-  
+    
+  #Declare results variable so we don't get a warning
+  printed_results=""
+    
   #Anonymous file() might be a better way to do this
   con = textConnection("printed_results", open = "w", local = TRUE)
   
@@ -309,15 +312,23 @@ COYU_print_results_to_string<-function(results,
 #' 
 #' data(test_2_year,package="coyu") 
 #' 
-#' results1<-COYU_all_results(test_2_year$trial_data,test_2_year$coyu_parameters,test_2_year$probability_sets)[[1]]
+#' results1<-COYU_all_results(test_2_year$trial_data,
+#'                            test_2_year$coyu_parameters,
+#'                            test_2_year$probability_sets)[[1]]
 #' ## note [[1]] selects the results for the first probability set
 #' 
-#' COYU_print_results(results1, test_2_year$coyu_parameters, test_2_year$character_key, test_2_year$probability_set[1,])
+#' COYU_print_results(results1,
+#'                    test_2_year$coyu_parameters,
+#'                    test_2_year$character_key,
+#'                    test_2_year$probability_set[1,])
 #' ## note test_2_year$probability_set[1,] gives the probabilities for this set
 #' 
-#' write.csv(COYU_results_as_dataframe(results1, "2_year_reject"), "tester.csv")
+#' write.csv(COYU_results_as_dataframe(results1,"2_year_reject"),
+#'           "tester.csv")
 #' 
-#' COYU_plot_results(results1, character_key = test_2_year$character_key, plot_file="MyPlots.pdf")
+#' COYU_plot_results(results1,
+#'                   character_key = test_2_year$character_key,
+#'                   plot_file="MyPlots.pdf")
 #' ## results sent to a pdf file.
 #'
 #' @export

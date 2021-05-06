@@ -175,6 +175,27 @@ NULL
 #' @format A named list with names \code{trial_data, coyu_parameters, probability_sets} and \code{character_key}
 NULL
 
+#' 2 year trial with missing values - contributed data
+#'
+#' This is an example dataset containing data as follows:
+#'
+#' \itemize{
+#' \item 72 reference varieties
+#' \item 4 candidate varieties
+#' \item 13 characters
+#' \item 2 years of trial data
+#' }
+#'
+#' There are missing values. 
+#'
+#' @docType data
+#' @keywords datasets
+#' @name test_missing_values_extra
+#' @usage data(test_missing_values_extra)
+#' @seealso COYU_dataset_format
+#' @format A named list with names \code{trial_data, coyu_parameters, probability_sets} and \code{character_key}
+NULL
+
 #' 3 year trial with unbalanced data - contributed
 #'
 #' This is an example dataset containing data as follows:

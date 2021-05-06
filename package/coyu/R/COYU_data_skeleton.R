@@ -86,13 +86,20 @@
 #' 
 #' fake_stddev_data<-rbind(matrix(0.1,3,3), matrix(0.8,3,3))
 #' 
-#' trial_data<-COYU_data_skeleton(years, characters, varieties, mean_data = fake_mean_data, stddev_data = fake_stddev_data)
+#' trial_data<-COYU_data_skeleton(years,
+#'                                characters,
+#'                                varieties,
+#'                                mean_data = fake_mean_data,
+#'                                stddev_data = fake_stddev_data)
 #' 
 #' COYU_parameters_from_df(trial_data,c(10))
 #' 
-#' y=COYU_probability_set(reject_3_year = c(0.05,0.02,0.01), reject_2_year = c(0.05,0.02,0.01), accept_2_year = c(0.1,0.05,0.02))
+#' y=COYU_probability_set(reject_3_year = c(0.05,0.02,0.01),
+#'                        reject_2_year = c(0.05,0.02,0.01),
+#'                        accept_2_year = c(0.1,0.05,0.02))
 #' 
-#' COYU_sanity_check(trial_data = trial_data, coyu_parameters = COYU_parameters_from_df(trial_data,c(10)))
+#' COYU_sanity_check(trial_data = trial_data,
+#'                   coyu_parameters = COYU_parameters_from_df(trial_data,c(10)))
 #' 
 #' @export
 COYU_data_skeleton <- function(years,characters,variety_afp,variety_name,mean_data,stddev_data) {

@@ -1,4 +1,15 @@
 
+#'COYU_print_all_results
+#'
+#' Print a list of COYU results in a pleasant human-readable format
+#'
+#' @param results_list COYUs9ResultsList object
+#' @param coyu_parameters COYUs9Parameters object describing the parameter set used to generate the results in the first parameter
+#' @param character_key COYUs9CharacterKey object containing two columns, the first (CCode) a numeric character code and the second (CName) a text description of the character
+#' @param probability_sets Numeric vector with named values 2_year_reject, 2_year_accept and 3_year_reject. Usually extracted from a COYUs9ProbabilitySet object
+#' @param connection Optional, default "". Pass a connection to which to write the results. By default the results will be written to STDOUT.
+#' @param verbose Optional, default TRUE. Print per-character results in addition to the summary file. 
+#' @seealso COYU_print_results
 #'@export
 COYU_print_all_results <- function(results_list,
                                    coyu_parameters,
@@ -24,7 +35,18 @@ COYU_print_all_results.COYUs9ResultsList <- function(results_list,
 }
 
 #' COYU_print_all_results.list
-#' Deprecate this in the fullness of time. Also see about shipping parameters as attributes to the result set/list. Much better
+#'
+#' Print a list of COYUs9AllResults objects
+#'
+#' Deprecate this in the fullness of time as its functionality is provided by
+#' COYU_print_all_results.COYUs9ResultsList
+#' 
+#' @param results_list COYUs9ResultsList object
+#' @param coyu_parameters COYUs9Parameters object describing the parameter set used to generate the results in the first parameter
+#' @param character_key COYUs9CharacterKey object containing two columns, the first (CCode) a numeric character code and the second (CName) a text description of the character
+#' @param probability_sets Numeric vector with named values 2_year_reject, 2_year_accept and 3_year_reject. Usually extracted from a COYUs9ProbabilitySet object
+#' @param connection Optional, default "". Pass a connection to which to write the results. By default the results will be written to STDOUT.
+#' @param verbose Optional, default TRUE. Print per-character results in addition to the summary file. 
 #'@export
 COYU_print_all_results.list <- function(results_list,
                                         coyu_parameters,

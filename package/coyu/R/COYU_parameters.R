@@ -88,7 +88,8 @@ COYU_parameters <- function(candidates,
 #'
 #' @examples
 #' ## Simple trial with only two candidates
-#' COYU_parameters_from_df(my_trial_data,c(51,7))
+#' data(test_2_year)
+#' COYU_parameters_from_df(test_2_year$trial_data,c(4,64))
 #' 
 #' 
 #' ## More functional working example with faked data
@@ -104,13 +105,19 @@ COYU_parameters <- function(candidates,
 #' 
 #' fake_stddev_data<-rbind(matrix(0.1,3,3), matrix(0.8,3,3))
 #' 
-#' trial_data<-COYU_data_skeleton(years, characters, varieties, mean_data = fake_mean_data, stddev_data = fake_stddev_data)
+#' trial_data<-COYU_data_skeleton(years,
+#'                                characters,
+#'                                varieties, mean_data = fake_mean_data,
+#'                                stddev_data = fake_stddev_data)
 #' 
 #' COYU_parameters_from_df(trial_data,c(10))
 #' 
-#' y=COYU_probability_set(reject_3_year = c(0.05,0.02,0.01), reject_2_year = c(0.05,0.02,0.01), accept_2_year = c(0.1,0.05,0.02))
+#' y=COYU_probability_set(reject_3_year = c(0.05,0.02,0.01),
+#'                        reject_2_year = c(0.05,0.02,0.01),
+#'                        accept_2_year = c(0.1,0.05,0.02))
 #' 
-#' COYU_sanity_check(trial_data = trial_data, coyu_parameters = COYU_parameters_from_df(trial_data,c(10)))
+#' COYU_sanity_check(trial_data = trial_data,
+#'                   coyu_parameters = COYU_parameters_from_df(trial_data,c(10)))
 #' 
 #' @export
 COYU_parameters_from_df <- function(trial_data,candidates) UseMethod("COYU_parameters_from_df")
