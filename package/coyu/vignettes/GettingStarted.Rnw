@@ -1,7 +1,0 @@
-%\VignetteIndexEntry{Getting started with COYUs}
-\documentclass[a4paper]{article}
-\usepackage{pdfpages}
-
-\begin{document}
-\includepdf[pages=-, fitpaper=true]{Vignette_GettingStartedCOYU.pdf}
-\end{document}

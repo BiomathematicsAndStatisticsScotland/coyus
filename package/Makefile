@@ -153,6 +153,7 @@ clean:
 	rm -f roxygenise.Rbatch testme.Rbatch
 	rm -f ${PACKAGE}/man/*.Rd
 	rm -f ${PACKAGE}/inst/doc/*.pdf
+	rm -f ${PACKAGE}/doc/*
 	rm -f $(VIGNETTEDIR)/*.aux
 	rm -f $(VIGNETTEDIR)/*.tex
 	rm -f $(VIGNETTEDIR)/*.log
