@@ -8,6 +8,8 @@ Maintainer: David Nutter <david.nutter@bioss.ac.uk>
 Description: Provides facilities to perform a Combined-Over-Years uniformity analysis (COYU) using the spline method.
 NeedsCompilation: no
 License: BSD_3_clause + file LICENSE
+Suggests: knitr
+VignetteBuilder: knitr
 Depends:
     R (>= 3.0.0)
 Imports:
