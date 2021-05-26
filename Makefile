@@ -1,7 +1,8 @@
 FC = gfortran
 
 WINREPO_DIR:=repo
-DOWNLOAD_REPO:=$(shell if [ -d $(WINREPO) ]; then echo "no"; else echo "yes"; fi)
+LIBRARY_DIR:=r_library_extra
+DOWNLOAD_REPO:=$(shell if [ -d $(WINREPO_DIR) ]; then echo "no"; else echo "yes"; fi)
 PKGVER:=$(shell cd package && make getversion)
 
 PROGRAM:=$(shell cd package && make getprogram)
@@ -19,12 +20,14 @@ all: windist
 stub:
 	cd dust_stub && $(MAKE) all
 
-rpackage:
+rpackage: 
 	cd package && $(MAKE) dist
 
-
 repodir: rpackage
-	Rscript utils/setupRepo.R $(DOWNLOAD_REPO) $(PKGVER) $(WINREPO_DIR)
+	export R_LIBS_USER=$(LIBRARY_DIR); Rscript utils/setupRepo.R $(DOWNLOAD_REPO) $(PKGVER) $(WINREPO_DIR)
+
+rlibrarydir: rpackage
+	export R_LIBS_USER=$(LIBRARY_DIR); Rscript --vanilla utils/setupLibrary.R $(WINREPO_DIR) $(PKGVER) $(LIBRARY_DIR) 
 
 clean:
 	cd dust_stub && $(MAKE) clean
@@ -36,9 +39,14 @@ distclean: clean
 	cd dust_stub && $(MAKE) clean	
 	cd package && $(MAKE) distclean
 
-windist: stub repodir
+reallyclean: distclean
+	rm -rf $(LIBRARY_DIR)
+	rm -rf $(WINREPO_DIR)
+
+windist: stub repodir rlibrarydir
 	mkdir -p $(ZIP_DIR)
 	cp -R $(WINREPO_DIR) $(ZIP_DIR)
+	cp -R $(LIBRARY_DIR) $(ZIP_DIR)
 	cd dust_stub && cp $(ZIP_CONTENTS) ../$(ZIP_DIR)
 	cd $(ZIP_DIR) && zip -r ../windist-$(PKGVER).zip *
 	rm -rf $(ZIP_DIR)

@@ -44,7 +44,12 @@ mirror = getOption("repos")
 ### END SCRIPT SETUP FOR TESTING
 
 if (mirror=="@CRAN@") {
-    stop("This script needs option \"repos\" set to a valid CRAN repository as it cannot pop up a mirror prompt as a normal interactive R session would use")
+    stop("This script needs option \"repos\" set to a valid CRAN repository as it cannot pop up a mirror prompt as a normal interactive R session would use. See the source of this script for a suggested .Rprofile entry")
+#Suggested contents of `pwd`/.Rprofile
+#local({r <- getOption("repos")
+#       r["CRAN"] <- "https://www.stats.bris.ac.uk/R/"
+#       options(repos=r)})
+
 } else {
     message(sprintf("Using mirror '%s' for downloads", mirror))
 }
