@@ -45,15 +45,18 @@ calculate_candidate_uniformity <- function(all_results) {
   #Bind in variety names/AFPs, just like a normal summary 
   if (is_3_year(all_results)) {
     uniformity$`3_year_reject`=cbind(AFP=candidate_afp,
+                                     Variety=candidate_name,
                                      extract_field(all_results,get_threshold,"3_year_reject",
-                                                   row_names=candidate_name,col_names=characters))
+                                                   col_names=characters))
   } else {
     uniformity$`2_year_reject`=cbind(AFP=candidate_afp,
+                                     Variety=candidate_name,
                                      extract_field(all_results,get_threshold,"2_year_reject",
-                                                   row_names=candidate_name,col_names=characters))
+                                                   col_names=characters))
     uniformity$`2_year_accept`=cbind(AFP=candidate_afp,
+                                     Variety=candidate_name,
                                      extract_field(all_results,get_threshold,"2_year_accept",
-                                                   row_names=candidate_name,col_names=characters))
+                                                   col_names=characters))
   }
   return(uniformity)
 }
@@ -75,7 +78,7 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     
     char_results<-results_col[[first_dataset]]
     
-    summary_col_names<-c("AFP","Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD",
+    summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD",
                          sapply(char_results$mean_sd_data, function(x) { sprintf("Mean_%s",x$year) }),
                          sapply(char_results$mean_sd_data, function(x) { sprintf("Log(SD+1)_%s",x$year) })
     )
@@ -97,13 +100,19 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
       ncol=get_num_trial_years(coyu_parameters))
     }
     
-    candidate_summary<-cbind(char_results$candidates[,c("candidate_afp", "extrapolation_factor", "candidate_means",
-                                                        "candidate_adjusted_logSD","candidate_actual_logSD")],
+    candidate_summary<-cbind(char_results$candidates[,c("candidate_afp")],
+                             strip_string_factor(char_results$candidate$candidate_varieties),
+                             
+                             char_results$candidates[,c("extrapolation_factor",
+                                                        "candidate_means",
+                                                        "candidate_adjusted_logSD",
+                                                        "candidate_actual_logSD")],
                              extra_cols(coyu_parameters$candidates,"cand_mean"),
-                             extra_cols(coyu_parameters$candidates,"cand_logsd")                             
+                             extra_cols(coyu_parameters$candidates,"cand_logsd")
     )
     
     reference_summary<-cbind(char_results$reference[,c("reference_afp")],
+                             strip_string_factor(char_results$reference$reference_varieties),
                              rep(NA, nrow(char_results$reference)),
                              char_results$reference[,c("reference_means",
                                                        "reference_adjusted_logSD",
@@ -111,11 +120,9 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
                              extra_cols(coyu_parameters$reference,"ref_mean"),
                              extra_cols(coyu_parameters$reference,"ref_logsd")
     )                             
-    
-    dimnames(candidate_summary)<-list(strip_string_factor(char_results$candidates$candidate_varieties),
-                                      summary_col_names)
-    dimnames(reference_summary)<-list(strip_string_factor(char_results$reference$reference_varieties),
-                                      summary_col_names)
+
+    colnames(candidate_summary)=summary_col_names  
+    colnames(reference_summary)=summary_col_names
     
     reference_means <- colMeans(reference_summary[,c(-1,-2)], na.rm=TRUE)
     
@@ -178,15 +185,14 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
 }
 
 print_between_plant_summary<-function(summary_data,summary_symbols, postprocess=function(x) { x }, connection="") {
-  variety_names<-rownames(summary_data)
   col_count<-ncol(summary_data)
   for (row in 1:nrow(summary_data)) {
     afp<-strip_numeric_factor(summary_data[row,"AFP"])
-    
-    cat(sprintf("%8s %-12s",afp,variety_names[row]),        
+    variety<-strip_string_factor(summary_data[row,"Variety"])
+    cat(sprintf("%8s %-12s",afp,variety),        
         postprocess(sprintf("%12.3g%-2s",
-                            as.numeric(as.vector(summary_data[row,2:col_count])),
-                            as.character(summary_symbols[row,2:col_count]))),
+                            as.numeric(as.vector(summary_data[row,3:col_count])),
+                            as.character(summary_symbols[row,3:col_count]))),
         "\n",
         file=connection
     )
@@ -194,16 +200,17 @@ print_between_plant_summary<-function(summary_data,summary_symbols, postprocess=
 }
 
 print_candidate_uniformity <- function(uniformity_data,connection="") {
-  variety_names<-rownames(uniformity_data)
+  
   col_count<-ncol(uniformity_data)
   for (row in 1:nrow(uniformity_data)) {
     afp<-strip_numeric_factor(uniformity_data[row,"AFP"])
+    variety<-strip_string_factor(uniformity_data[row,"Variety"])
     
     cat(sprintf(" %8s %-12s",
                 afp,
-                variety_names[row]),        
+                variety),        
         sprintf("%5.3g  ",
-                as.numeric(as.vector(uniformity_data[row,2:col_count]))),
+                as.numeric(as.vector(uniformity_data[row,3:col_count]))),
         "\n",
         file=connection
     )
@@ -211,19 +218,19 @@ print_candidate_uniformity <- function(uniformity_data,connection="") {
 }
 
 print_candidate_summary <- function(candidate_summary,connection="") {
-  variety_names<-rownames(candidate_summary)
   char_names<-colnames(candidate_summary)
   
   col_count<-ncol(candidate_summary)
-  cat(sprintf(" %8s %-12s","AFP","VARIETY"),sprintf("%5s",char_names[-1]),"\n\n",file=connection)
+  cat(sprintf(" %8s %-12s","AFP","VARIETY"),sprintf("%5s",char_names[c(-1,-2)]),"\n\n",file=connection)
   for (row in 1:nrow(candidate_summary)) {
     afp<-strip_numeric_factor(candidate_summary[row,"AFP"])
+    variety<-strip_string_factor(candidate_summary[row,"Variety"])
     
     cat(sprintf(" %8s %-12s",
                 afp,
-                variety_names[row]),        
+                variety),        
         sprintf("%5s",
-                as.vector(candidate_summary[row,2:col_count])),
+                as.vector(candidate_summary[row,3:col_count])),
         "\n",
         file=connection
     )
@@ -377,7 +384,7 @@ COYU_print_results.COYUs9AllResults<-function(results,
             file=connection)
       
       cat(sprintf("%8s %-12s ","AFP","VARIETY"),
-          sprintf("%14s",colnames(char_summary$reference_summary)[-1]),
+          sprintf("%14s",colnames(char_summary$reference_summary)[c(-1,-2)]),
           "\n\n",
           file=connection)
       
@@ -410,22 +417,23 @@ COYU_print_results.COYUs9AllResults<-function(results,
   write("\n\nCANDIDATE SUMMARY\n",file=connection)
   
   candidate_summary<-cbind(AFP=extract_candidate_afp(results),
+                           Variety=extract_candidate_names(results),
                            matrix(sapply(between_plant_summary,
-                                         function (char_results) { apply(char_results$candidate_symbols[,-1],1,
-                                                                         function (candidate_row) {
-                                                                           ret<-paste(unique(candidate_row),collapse="")
-                                                                           if (nchar(ret)==0) {
-                                                                             ret<-"_"
-                                                                           }
-                                                                           return(ret)
-                                                                         })
+                                         function (char_results) {
+                                             apply(char_results$candidate_symbols[,-1],1,
+                                                   function (candidate_row) {
+                                                       ret<-paste(unique(candidate_row),collapse="")
+                                                       if (nchar(ret)==0) {
+                                                           ret<-"_"
+                                                       }
+                                                       return(ret)
+                                                   })
                                          }),
                                   nrow=length(coyu_parameters$candidates),
                                   ncol=length(coyu_parameters$characters)
                            ))
   
-  rownames(candidate_summary)<-extract_candidate_names(results)
-  colnames(candidate_summary)<-c("AFP",sprintf("%02d",extract_characters(results)))
+  colnames(candidate_summary)<-c("AFP", "Variety", sprintf("%02d",extract_characters(results)))
   
   print_candidate_summary(candidate_summary,connection)
   
