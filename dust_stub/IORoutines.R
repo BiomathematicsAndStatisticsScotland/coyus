@@ -16,6 +16,9 @@ vassign <- function(..., values, envir=parent.frame()) {
 #Output width
 # 0 - 80 columns
 # 1 - 120 columns
+#
+# NOTE: for complete compatibility with DUST (particularly the file view) these files should be written in CR/LF format. 
+# This need will become more acute if we ever implement write{U,M,J}File routines
 writeCoyu9File<-function(input_file,
                          probability_sets=list(),
                          name="COYUs9.DAT",
