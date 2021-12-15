@@ -4,8 +4,6 @@ EXPECTED_R_VERSION<-"3.0.0"
 EXPECTED_PACKAGE_VERSION<-"1.6-1"
 PACKAGE_NAME<-"coyu"
 
-options(encoding="ISO-8859-1")
-
 initial_args <- commandArgs(trailingOnly = FALSE)
 
 file_arg_name = "--file="
@@ -84,7 +82,7 @@ capture_warnings <- function() {
 
             warnings_text = capture_warnings()
             
-            stack_text = paste(warnings_text, "\n", "R Error ocurred. Stack trace:\n\n",paste(calls,collapse="\n"))
+            stack_text = paste(warnings_text, "\n", "R Error ocurred. ",e,"\nStack trace:\n\n",paste(calls,collapse="\n"))
 
             writeErrorFile(stack_text,
                            errorFile=error_file)
