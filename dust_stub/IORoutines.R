@@ -269,15 +269,35 @@ readUFile<-function(name,target_dir=".") {
   means_by_year<-do.call("rbind",lapply(means,filterMData,varieties_in_trial,characters_in_trial))
   stddevs_by_year<-do.call("rbind",lapply(stddevs,filterJData,varieties_in_trial,characters_in_trial))
 
+  ## Catch "bad" data files where M and J files do not contain comparable data
+  ## Note possibly "better" fix below using merge()
+  if (nrow(means_by_year) != nrow(stddevs_by_year)) {
+      stop(sprintf("means for year %s: %d rows. stddevs for year %s: %d rows. I will not combine these. Ensure missing data is explicitly recorded", year, nrow(means_by_year), year, nrow(stddevs_by_year)))
+  }
+
+    
   # Get canonical variety names from last year of mean values
   last_year <- max(means_by_year$year)
   variety_labels<-means_by_year[,c("AFP","variety")]
     
-  #Combine into a single dataset. Drop Year, AFP and variety columns from 2nd frame as we'll use the first frame to provide these
-  all_data<-cbind(means_by_year,subset(stddevs_by_year,select=!names(stddevs_by_year) %in% c("year","AFP","variety")))
-
-    #Set canonical variety names
+  ## Combine into a single dataset. Drop Year, AFP and variety columns
+  ## from 2nd frame as we'll use the first frame to provide these -
+  ## this does not work if means_by_year and stddevs_by_year have
+  ## differing numbers of rows
+  ##  
+  all_data<-cbind(means_by_year,
+                   subset(stddevs_by_year,
+                          select=!names(stddevs_by_year) %in% c("year","AFP","variety")))
+  ## 
+  ## Set canonical variety names - fails when we have differing
+  ## numbers of rows in means and stddevs and is not necessary anyway
+  ##
   all_data$variety<-variety_labels[variety_labels$AFP==all_data$AFP,"variety"]
+  
+  ## Instead we could do something like this:
+  ## all_data=merge(means_by_year, stddevs_by_year, by=c("year", "AFP", "variety"))
+
+    
   
   
   coyu_parameters<-COYU_parameters(candidates=candidate_varieties,
@@ -367,6 +387,7 @@ filterMData<-function(mean_data,varieties_AFP,characters,character_prefix="UP") 
   filterJData(mean_data,varieties_AFP,characters,character_prefix)
 }
 
+#The 'J' files contain the standard deviations for each character.
 readJFile<-function(name,character_prefix="sUP",target_dir=".") {
 
   if (!file.exists(name)) {
@@ -442,6 +463,7 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
   return(file_data)  
 }
 
+#The 'M' files contain means for each character. The format is the same as the 'J' files
 readMFile<-function(name,character_prefix="UP",target_dir=".") {
   readJFile(name,character_prefix,target_dir)
 }
