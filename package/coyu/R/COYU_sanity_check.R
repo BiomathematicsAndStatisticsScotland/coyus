@@ -202,9 +202,10 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
       warning("Candidate varieties ",paste(missing_candidates,collapse=",")," are not present in data for year ",year)
       success <- FALSE
     }
-    
-    if (any(is.na(candidates_year))) {
-      warning("Missing data for candidates in year ",year)
+
+    missing_data_candidates<-candidates_year[rowSums(is.na(candidates_year)) > 0,]$AFP
+    if (length(missing_data_candidates) > 0) {
+      warning("Missing data for candidates ",paste(missing_data_candidates,collapse=",")," in year ",year)
       success <- FALSE
     }
     
