@@ -63,7 +63,7 @@ globalVariables(c("AFP"))
 #' @import MASS
 #' @import splines
 #' @importFrom stats smooth.spline predict 
-COYU_single_year<-function(yr.i,dat.ref,dat.cand){
+COYU_single_year<-function(yr.i, dat.ref, dat.cand){
   
 # TODO: the nature of this function means that there is a lot of
 # recalculation (e.g. grand mean and so on) Work out what does not
@@ -74,6 +74,11 @@ COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   dat.cand.i<-dat.cand[dat.cand$year==yr[yr.i],]
   dat.ref.i<-dat.ref.i.full<-dat.ref[dat.ref$year==yr[yr.i],] # changed 04.09.14
   dat.ref.i<-dat.ref.i[!is.na(dat.ref.i$logSD),] #added 04.09.14
+    
+  ## Possible fix for issue identified by Haidee on 2021-12-20 where
+  ## some varieties have means, or SDs but not both    
+  ## dat.ref.i<-dat.ref.i[!(is.na(dat.ref.i$logSD) | is.na(dat.ref.i$mn)),]
+    
   grand_mean<-mean(dat.ref.i$logSD) 
 
   # reordering to help spline work - does this return results in the right order for use later?
@@ -84,15 +89,21 @@ COYU_single_year<-function(yr.i,dat.ref,dat.cand){
   dat.cand.i<-dat.cand.i[order_cand_by_mean,]
   
   # fit natural spline with fixed df using smooth.spline
-  ref_variety_spline <- smooth.spline(dat.ref.i$mn,dat.ref.i$logSD, all.knots = TRUE,df = 4)
-  Y.fit<-predict(ref_variety_spline,dat.ref.i$mn)$y 
-  Ynew.fit<-predict(ref_variety_spline,dat.cand.i$mn)$y
+  ref_variety_spline <- smooth.spline(dat.ref.i$mn,
+                                      dat.ref.i$logSD,
+                                      all.knots = TRUE,
+                                      df = 4)
+  Y.fit<-predict(ref_variety_spline,
+                 dat.ref.i$mn)$y 
+  Ynew.fit<-predict(ref_variety_spline,
+                    dat.cand.i$mn)$y
   cand_adj_logSD<-grand_mean+dat.cand.i$logSD-Ynew.fit
 
 
   #Fix for data containing missing values for means - 21.04.15
   Y.fit.full<-numeric(length=length(dat.ref.i.full$mn)) 
-  Y.fit.full[!is.na(dat.ref.i.full$mn)]<-predict(ref_variety_spline,dat.ref.i.full[!is.na(dat.ref.i.full$mn),]$mn)$y 
+  Y.fit.full[!is.na(dat.ref.i.full$mn)]<-predict(ref_variety_spline,
+                                                 dat.ref.i.full[!is.na(dat.ref.i.full$mn),]$mn)$y 
   is.na(Y.fit.full)<-which(is.na(dat.ref.i.full$mn)) 
 
   ref_adj_logSD<-grand_mean+dat.ref.i.full$logSD-Y.fit.full 
