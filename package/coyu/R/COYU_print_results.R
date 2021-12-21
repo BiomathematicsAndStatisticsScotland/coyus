@@ -141,7 +141,7 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
         if (value > thresholds["2_year_reject"]) {
           return("+")
         } else if (value > thresholds["2_year_accept"]) { 
-          return("") #TODO: This value is being ignored for now, hence blank symbol. In FORTRAN the symbol is ":"
+          return(":") #See Y2CRI2A in COYU9.for for use of this
         }
       }
       return("")
