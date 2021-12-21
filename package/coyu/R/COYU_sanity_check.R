@@ -208,7 +208,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
       warning("Missing data for candidates ",paste(missing_data_candidates,collapse=",")," in year ",year)
       success <- FALSE
     }
-    
+
     if (any(candidates_year[,c(character_means,character_stddevs)] < 0, na.rm=TRUE)) {
       warning("Negative candidate measurement values in year ",year)
       success <- FALSE
@@ -235,7 +235,13 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
                                                   function(x) { any(is.na(x)) } ), ]
     valid_reference_stddevs<- reference_year[!apply(as.data.frame(reference_year[,character_stddevs]),1,
                                                     function(x) { any(is.na(x)) } ), ]
-    
+
+    ## A possible additional check here is to check for reference data
+    ## where a mean or an SD is present for a character, but not
+    ## both. This indicates something funny going on with the input
+    ## datafiles.  However, it's also possible to handle this
+    ## situation in COYU_single_year (by excluding such values)
+      
     if (nrow(valid_reference_means) < COYU_MIN_REFERENCE_VARIETIES) {
       warning("Only ",nrow(valid_reference_means)," reference varieties with plot mean data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," are required")
       success <- FALSE
