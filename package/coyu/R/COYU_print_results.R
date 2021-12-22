@@ -78,52 +78,79 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     
     char_results<-results_col[[first_dataset]]
     
-    summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD",
-                         sapply(char_results$mean_sd_data, function(x) { sprintf("Mean_%s",x$year) }),
-                         sapply(char_results$mean_sd_data, function(x) { sprintf("Log(SD+1)_%s",x$year) })
-    )
+    summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD")    
     
-    #Problem here when names are not in correct order??
+    #Problem here when names are not in correct order?? -- might be sally's issue...YES
     pad_values_by_name<-function(target_names,x) {
       indexes=match(setdiff(target_names, names(x)), target_names) 
       padded=pad_at_index(x,indexes)
       names(padded)=target_names
       return(padded)
-    }
-    
-    extra_cols<-function(varieties,field_name) {
-      matrix(sapply(char_results$mean_sd_data,
-                    function(x) {
-                      pad_values_by_name(sort(varieties),x[[field_name]]) }
-      ),
-      nrow=length(varieties),
-      ncol=get_num_trial_years(coyu_parameters))
-    }
-    
-    candidate_summary<-cbind(char_results$candidates[,c("candidate_afp")],
-                             strip_string_factor(char_results$candidate$candidate_varieties),
-                             
-                             char_results$candidates[,c("extrapolation_factor",
-                                                        "candidate_means",
-                                                        "candidate_adjusted_logSD",
-                                                        "candidate_actual_logSD")],
-                             extra_cols(coyu_parameters$candidates,"cand_mean"),
-                             extra_cols(coyu_parameters$candidates,"cand_logsd")
-    )
-    
-    reference_summary<-cbind(char_results$reference[,c("reference_afp")],
-                             strip_string_factor(char_results$reference$reference_varieties),
-                             rep(NA, nrow(char_results$reference)),
-                             char_results$reference[,c("reference_means",
-                                                       "reference_adjusted_logSD",
-                                                       "reference_actual_logSD")],
-                             extra_cols(coyu_parameters$reference,"ref_mean"),
-                             extra_cols(coyu_parameters$reference,"ref_logsd")
-    )                             
+    }        
 
-    colnames(candidate_summary)=summary_col_names  
-    colnames(reference_summary)=summary_col_names
+    extra_cols_as_df<-function(varieties,field_name, col_name_template) {
+        column_names= c("AFP", sapply(char_results$mean_sd_data,
+                                      function(x) {
+                                          sprintf(col_name_template, x$year)
+                                      }))
+
+        ret=as.data.frame(
+            cbind(sort(varieties),
+                  matrix(sapply(char_results$mean_sd_data,
+                                function(x) {
+                                    pad_values_by_name(sort(varieties),x[[field_name]]) }
+                                ),
+                         nrow=length(varieties),
+                         ncol=get_num_trial_years(coyu_parameters))),
+            )
+
+        colnames(ret)=column_names
+        return(ret)
+    }
     
+    candidate_summary<-as.data.frame(
+        cbind(char_results$candidates[,c("candidate_afp")],
+              strip_string_factor(char_results$candidate$candidate_varieties),
+              char_results$candidates[,c("extrapolation_factor",
+                                         "candidate_means",
+                                         "candidate_adjusted_logSD",
+                                         "candidate_actual_logSD")]
+              ))
+
+    colnames(candidate_summary)=summary_col_names
+    candidate_summary=merge(
+        merge(candidate_summary,
+              extra_cols_as_df(coyu_parameters$candidates, "cand_mean", "Mean_%s"),
+              by=c("AFP"),
+              sort=FALSE,
+              all.x=TRUE),
+        extra_cols_as_df(coyu_parameters$candidates, "cand_logsd", "Log(SD+1)_%s"),
+        by=c("AFP"),
+        sort=FALSE,
+        all.x=TRUE)
+      
+    reference_summary<-as.data.frame(
+        cbind(char_results$reference[,c("reference_afp")],
+              strip_string_factor(char_results$reference$reference_varieties),
+              rep(NA, nrow(char_results$reference)),
+              char_results$reference[,c("reference_means",
+                                        "reference_adjusted_logSD",
+                                        "reference_actual_logSD")]     
+              ))                             
+        
+    colnames(reference_summary)=summary_col_names
+
+    reference_summary=merge(
+        merge(reference_summary,
+              extra_cols_as_df(coyu_parameters$reference, "ref_mean", "Mean_%s"),
+              by=c("AFP"),
+              sort=FALSE,
+              all.x=TRUE),
+        extra_cols_as_df(coyu_parameters$reference, "ref_logsd", "Log(SD+1)_%s"),
+        by=c("AFP"),
+        sort=FALSE,
+        all.x=TRUE)
+      
     reference_means <- colMeans(reference_summary[,c(-1,-2)], na.rm=TRUE)
     
     
