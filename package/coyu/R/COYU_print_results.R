@@ -80,7 +80,7 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     
     summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD")    
     
-    #Problem here when names are not in correct order?? -- might be sally's issue...YES
+    #Ensure we always have the correct number of values
     pad_values_by_name<-function(target_names,x) {
       indexes=match(setdiff(target_names, names(x)), target_names) 
       padded=pad_at_index(x,indexes)
