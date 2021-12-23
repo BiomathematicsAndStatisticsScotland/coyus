@@ -396,7 +396,7 @@ COYU_print_results.COYUs9AllResults<-function(results,
   if (is_3_year(coyu_parameters)) {
     symbols_used<-c("!","*")
   } else {
-    symbols_used<-c("!","+")
+    symbols_used<-c("!","+",":")
   }
   
   between_plant_summary<-format_between_plant_summary(coyu_parameters,results,probability_set)
