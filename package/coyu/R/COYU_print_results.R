@@ -150,9 +150,9 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
         by=c("AFP"),
         sort=FALSE,
         all.x=TRUE)
-      
-    reference_means <- colMeans(reference_summary[,c(-1,-2)], na.rm=TRUE)
-    
+
+    #Remove irrelevant columns before computing means
+    reference_means <- colMeans(reference_summary[,c(-1,-2,-3)], na.rm=TRUE)
     
     #TODO: this could potentially be simplified by using results variable candidate_not_uniform
     sd_symbols<-mapply(function(value,thresholds) {
@@ -421,9 +421,10 @@ COYU_print_results.COYUs9AllResults<-function(results,
                                   char_summary$candidate_symbols,
                                   postprocess=function(x) { gsub("NA", "- ",x) },
                                   connection)
-      
+
+      #Extract character means and logSD means
       cat(sprintf("\n%-34s", "REFERENCE MEANS"),
-          sprintf("%14.3g", as.numeric(char_summary$reference_means[1:2])),
+          sprintf("%14.3g", as.numeric(char_summary$reference_means[c("Char_Mean","Adj_LogSD")])),
           "\n\n",
           file=connection)
       
