@@ -1,3 +1,11 @@
+* Tue Jan 25 2022 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.9.2-1
+- Fix for issue identified by Sally around logSD means in printed output
+* Wed Dec 22 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.9-1 
+- Fix result printing to resolve yearly mean and sd ordering issues and
+  indicate values not yet acceptable in 2 year runs
+* Wed Jun 30 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.8-1 
+- Fix duplicate variety names
+- Improved error messages for DUST use
 * Wed Feb 10 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.7-1 
 - Integrate documentation changes
 * Tue Jul 16 2019 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.6-1
