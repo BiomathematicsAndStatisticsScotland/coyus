@@ -186,13 +186,14 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     
     #TODO: ideally we'd indicate which years were extrapolated too but this data is not exposed yet
     candidate_symbols <- data.frame(AFP=candidate_summary$AFP,
+                                    Variety=c(""),
                                     Extrapolation=c(""),
                                     Char_Mean=c("","!")[char_results$candidates$extrapolation+1],
                                     Adj_LogSD=sd_symbols,
                                     stringsAsFactors = FALSE, 
                                     matrix("",
                                            nrow=nrow(candidate_summary),
-                                           ncol=ncol(candidate_summary)-4))    
+                                           ncol=ncol(candidate_summary)-5))    
     
     reference_symbols <- matrix("",nrow=nrow(reference_summary),ncol=ncol(reference_summary))
     
