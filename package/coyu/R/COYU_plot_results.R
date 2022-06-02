@@ -132,12 +132,16 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
   #Add a bit of extra space to each limit
   character_xlim=c(min(minmax_x)*0.95,max(minmax_x)*1.05)
   character_ylim=c(min(minmax_y)*0.95,max(minmax_y)*1.05)    
+
+  #Experimental feature to label each point with the AFP number
+  do_labels=FALSE
   
   year_plot_result<-sapply(char_result$mean_sd_data,function(year_result) {
     #Filter out any missing values
     filtered_sd=year_result$ref_logsd[!is.na(year_result$ref_logsd)]
     filtered_mean=year_result$ref_mean[names(filtered_sd)]
-    
+
+    #Plot reference values as "X"
     plot(filtered_mean,
          filtered_sd,
          xlim=character_xlim,
@@ -148,7 +152,27 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
          pch=4)
     lines(year_result$x_line,
           year_result$y_line)
-    points(year_result$cand_mean, year_result$cand_logsd,pch="c",col="red") # new
+
+    #Plot candidates as "C"
+    points(year_result$cand_mean, year_result$cand_logsd,pch="c",col="red")
+
+    if (do_labels) {        
+        ## Plot reference labels
+        text(filtered_mean,
+             filtered_sd,
+             adj=c(-0.5,1.2),
+             cex=0.5,
+             labels=names(filtered_sd),
+             col="black")
+
+        ## Plot candidate labels
+        text(year_result$cand_mean,
+             year_result$cand_logsd,
+             adj=c(-0.5,1.2),
+             labels=names(year_result$cand_logsd),
+             cex=0.5,
+             col="red")
+    }
   })
   
   #Force a page break in 3 year mode

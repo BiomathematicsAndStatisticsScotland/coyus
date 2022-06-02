@@ -311,7 +311,11 @@ readUFile<-function(name,target_dir=".") {
   all_data$year <- as.factor(all_data$year)
   all_data$AFP <- as.factor(all_data$AFP)
   
-  #Do some checking
+  ## Do some checking TODO: should also check that actual M and J file
+  ## counts match trial years as mistakes in the header of such files
+  ## (e.g. making 2 files load the same year of data) cause obscure
+  ## errors.
+    
   if (num_trial_years > 3) {
     stop("COYUs9 can only analyse data sets of up to 3 years")
   }
