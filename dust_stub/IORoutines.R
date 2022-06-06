@@ -193,7 +193,7 @@ winVirtStoreLocateFileToWrite<-function(target_path) {
     dir.create(remapped_dir, showWarnings=FALSE, recursive=TRUE)
     return(remapped_path)
   } else {
-    error(sprintf("Directory %s for file %s does not exist",target_dir, target_path))
+    stop(sprintf("Directory %s for file %s does not exist",target_dir, target_path))
   }  
 }
 
