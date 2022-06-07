@@ -77,10 +77,10 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
   yearly_summary<-apply(results,2,function(results_col) {
     
     char_results<-results_col[[first_dataset]]
-    
+
     summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD")    
     
-    #Ensure we always have the correct number of values
+    ## Ensure we always have the correct number of values
     pad_values_by_name<-function(target_names,x) {
       indexes=match(setdiff(target_names, names(x)), target_names) 
       padded=pad_at_index(x,indexes)
@@ -89,10 +89,11 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     }        
 
     extra_cols_as_df<-function(varieties,field_name, col_name_template) {
-        column_names= c("AFP", sapply(char_results$mean_sd_data,
-                                      function(x) {
-                                          sprintf(col_name_template, x$year)
-                                      }))
+        column_names= c("AFP",
+                        sapply(char_results$mean_sd_data,
+                               function(x) {
+                                   sprintf(col_name_template, x$year)
+                               }))
 
         ret=as.data.frame(
             cbind(sort(varieties),
@@ -101,13 +102,13 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
                                     pad_values_by_name(sort(varieties),x[[field_name]]) }
                                 ),
                          nrow=length(varieties),
-                         ncol=get_num_trial_years(coyu_parameters))),
+                         ncol=get_num_trial_years(coyu_parameters)))
             )
 
         colnames(ret)=column_names
         return(ret)
     }
-    
+
     candidate_summary<-as.data.frame(
         cbind(char_results$candidates[,c("candidate_afp")],
               strip_string_factor(char_results$candidate$candidate_varieties),
@@ -154,7 +155,7 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     #Remove irrelevant columns before computing means
     reference_means <- colMeans(reference_summary[,c(-1,-2,-3)], na.rm=TRUE)
     
-    #TODO: this could potentially be simplified by using results variable candidate_not_uniform
+    ## TODO: this could potentially be simplified by using results variable candidate_not_uniform
     sd_symbols<-mapply(function(value,thresholds) {
       if (is.na(value)) {
         return("");
@@ -205,7 +206,8 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
                 reference_summary=reference_summary,
                 candidate_symbols=candidate_symbols,
                 reference_symbols=reference_symbols,
-                reference_means=reference_means
+                reference_means=reference_means,
+                degrees_freedom=char_results$spline_df
     ))
   })
   
@@ -423,7 +425,7 @@ COYU_print_results.COYUs9AllResults<-function(results,
                                   postprocess=function(x) { gsub("NA", "- ",x) },
                                   connection)
 
-      #Extract character means and logSD means
+      ## Extract character means and logSD means
       cat(sprintf("\n%-34s", "REFERENCE MEANS"),
           sprintf("%14.3g", as.numeric(char_summary$reference_means[c("Char_Mean","Adj_LogSD")])),
           "\n\n",
@@ -440,6 +442,9 @@ COYU_print_results.COYUs9AllResults<-function(results,
       write("\n", file=connection)
       
       print_symbol_key(c(symbols_used,"_"),probability_set,connection)
+      cat(sprintf("RESIDUAL DEGREES OF FREEDOM: %5.3g\n\n",
+                  char_summary$degrees_freedom),
+          file=connection)
     })
   }  
   
@@ -481,9 +486,8 @@ COYU_print_results.COYUs9AllResults<-function(results,
     cat("\n2 YEAR ACCEPT:\n\n",file=connection)
     print_candidate_uniformity(candidate_uniformity$`2_year_accept`,connection)
   }
-  
+                                          
   write("\n\nCHARACTER KEY :\n",file=connection)
   write(apply(character_key,1, function(x) sprintf("%8s  %-8s",x[1],x[2])),file=connection,ncolumns=2)
-  
 }
 
