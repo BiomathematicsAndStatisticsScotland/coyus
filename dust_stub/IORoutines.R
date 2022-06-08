@@ -1,5 +1,5 @@
 
-#Handy function for multiple assignment of variables
+## Handy function for multiple assignment of variables
 vassign <- function(..., values, envir=parent.frame()) {
   vars <- as.character(substitute(...()))
   values <- rep(values, length.out=length(vars))
@@ -8,17 +8,19 @@ vassign <- function(..., values, envir=parent.frame()) {
   }
 }
 
-# Plot options
-# 0 - ONLY SUMMARY TABLE
-# 1 - ALL TABLES (PLOTS 3 PER PAGE)
-# 2 - ALL TABLES (PLOTS 1 PER PAGE)
-# -1 ALL TABLES - NO PLOTS
-#Output width
-# 0 - 80 columns
-# 1 - 120 columns
-#
-# NOTE: for complete compatibility with DUST (particularly the file view) these files should be written in CR/LF format. 
-# This need will become more acute if we ever implement write{U,M,J}File routines
+## Plot options
+## 0 - ONLY SUMMARY TABLE
+## 1 - ALL TABLES (PLOTS 3 PER PAGE)
+## 2 - ALL TABLES (PLOTS 1 PER PAGE)
+## -1 ALL TABLES - NO PLOTS
+## Output width
+##  0 - 80 columns
+##  1 - 120 columns
+##
+## NOTE: for complete compatibility with DUST (particularly the file
+## view) these files should be written in CR/LF format.
+##
+## This need will become more acute if we ever implement write{U,M,J}File routines
 writeCoyu9File<-function(input_file,
                          probability_sets=list(),
                          name="COYUs9.DAT",
@@ -46,7 +48,7 @@ closeIfOpen <- function(con) {
 }
 
 isAbsolutePath<-function(input_path) {
-  #Borrowed largely from R.utils...
+  ## Borrowed largely from R.utils...
   input_path=as.character(input_path)
   if (length(input_path) <= 0L) {
     input_path="."
@@ -80,7 +82,7 @@ pathRelativeToTargetDir<-function(input_path, target_dir=".") {
 }
 
 readCoyu9File<-function(name) {
-  #Problems reading decimal values in locales other than en_gb (due to use of commas as decimal separator)
+  ## Problems reading decimal values in locales other than en_gb (due to use of commas as decimal separator)
   
   target_dir<-dirname(name)
 
@@ -109,7 +111,7 @@ readCoyu9File<-function(name) {
     data_file$plot_options=scan(con,what=integer(),n=1,quiet=TRUE)
     data_file$output_width=(scan(con,what=integer(),n=1,quiet=TRUE)+1)*80
 
-                                        #Change when we revise the data format accepted by the COYU package
+    ## Change when we revise the data format accepted by the COYU package
     data_file$probability_sets<-matrix(scan(con,n=data_file$prob_set_count*3,quiet=TRUE),
                                        nrow=data_file$prob_set_count,
                                        ncol=3,
@@ -135,7 +137,7 @@ anonymiseDataset<-function(data_file,anonymise_afp=FALSE,anonymise_name=TRUE) Us
 
 anonymiseDataset.DustData <- function(data_file,anonymise_afp=FALSE,anonymise_name=TRUE,strip_dust_specific=TRUE) {
   if (anonymise_afp) {
-    #Replace AFPs with sequential numbers, in trial data and elsewhere
+    ## Replace AFPs with sequential numbers, in trial data and elsewhere
     replacements<-seq(1:nlevels(data_file$trial_data$AFP))    
     afp_values<-unique(strip_numeric_factor(data_file$trial_data$AFP))
     
@@ -145,7 +147,7 @@ anonymiseDataset.DustData <- function(data_file,anonymise_afp=FALSE,anonymise_na
   }
 
   if (anonymise_name) {
-    #Replace names with names based on AFP number
+    ## Replace names with names based on AFP number
     data_file$trial_data$variety<- paste("AFP_",strip_numeric_factor(data_file$trial_data$AFP),sep="")
   }
 
@@ -161,8 +163,9 @@ winVirtStoreLocateFileToRead<-function(target_path) {
     return(target_path)
   }
   
-  #Logic: if the equivalent path in the VirtualStore exists, use that, otherwise use the 
-  #target path. This allows for files "overwritten" by other parts of the DUST system to be used
+  ## Logic: if the equivalent path in the VirtualStore exists, use
+  ## that, otherwise use the target path. This allows for files
+  ## "overwritten" by other parts of the DUST system to be used
   remapped_path = winVirtStoreConvertPath(target_path)
   
   if (file.exists(remapped_path)) {
@@ -176,8 +179,8 @@ winVirtStoreLocateFileToWrite<-function(target_path) {
     return(target_path)
   }
   
-  #Logic: if target_file/dir exists and is writable, use that. 
-  #Otherwise use the equivalen path in VirtualStore
+  ## Logic: if target_file/dir exists and is writable, use that.
+  ## Otherwise use the equivalent path in VirtualStore
   target_dir=dirname(target_path)
   if (dir.exists(target_dir)) {
     if (file.exists(target_path)) {
@@ -210,7 +213,7 @@ winVirtStoreConvertPath=function(target_path) {
 }
 
 winVirtStoreGetRoot<-function() {
-  #Get the root of the windows VirtualStore for this user
+  ## Get the root of the windows VirtualStore for this user
   return(normalizePath(file.path(gsub("\\\\","/",Sys.getenv("LOCALAPPDATA")),"VirtualStore"),
                        winslash=.Platform$file.sep,
                        mustWork=FALSE))
@@ -259,24 +262,30 @@ readUFile<-function(name,target_dir=".") {
   }, error=function(e) {
     checkForInvalidEncoding(name,e)   
   }, finally= closeIfOpen(con))
-                                        #While reading M and J files, set to be directory containing this UX file
-                                        #If these calls fail the WD may be changed permanently but this is unlikely to matter.
+    
+  ## While reading M and J files, set to be directory containing this
+  ## UX file If these calls fail the WD may be changed permanently but
+  ## this is unlikely to matter.    
   means<-lapply(mean_files,readMFile,target_dir=dirname(name))
   stddevs<-lapply(stddev_files,readJFile,target_dir=dirname(name))
            
-  #Get yearly means and standard deviations in 1 data frame.
-  #N.B variety names can be inconsistent between years, AFP is expected to be unique so we check this later
+  ## Get yearly means and standard deviations in 1 data frame.
+  ## N.B variety names can be inconsistent between years, AFP is expected to be unique so we check this later
   means_by_year<-do.call("rbind",lapply(means,filterMData,varieties_in_trial,characters_in_trial))
   stddevs_by_year<-do.call("rbind",lapply(stddevs,filterJData,varieties_in_trial,characters_in_trial))
 
   ## Catch "bad" data files where M and J files do not contain comparable data
   ## Note possibly "better" fix below using merge()
   if (nrow(means_by_year) != nrow(stddevs_by_year)) {
-      stop(sprintf("means for year %s: %d rows. stddevs for year %s: %d rows. I will not combine these. Ensure missing data is explicitly recorded", year, nrow(means_by_year), year, nrow(stddevs_by_year)))
+      stop(sprintf("means for year %s: %d rows. stddevs for year %s: %d rows. I will not combine these. Ensure missing data is explicitly recorded",
+                   year,
+                   nrow(means_by_year),
+                   year,
+                   nrow(stddevs_by_year)))
   }
 
     
-  # Get canonical variety names from last year of mean values
+  ## Get canonical variety names from last year of mean values
   last_year <- max(means_by_year$year)
   variety_labels<-means_by_year[,c("AFP","variety")]
     
@@ -305,7 +314,9 @@ readUFile<-function(name,target_dir=".") {
                                    characters=characters_in_trial,
                                    num_years=num_trial_years)     
 
-  dataset_trial_years<-sapply(means,function(x) { swingYear(attr(x,"header")$year) }) #TODO: Replace with nlevels call
+  ## TODO: Replace with nlevels call, so we get the "real" years in the dataset.
+  ## We might want to cross-check the values laters
+  dataset_trial_years<-sapply(means,function(x) { swingYear(attr(x,"header")$year) }) 
   character_key<-attr(stddevs[[1]],"header")$character_key[[1]]
                                    
   all_data$year <- as.factor(all_data$year)
@@ -345,9 +356,9 @@ readUFile<-function(name,target_dir=".") {
               
 }
 
-#Implement swing date to deal with 2-digit years in crop data files.
-#1970 is chosen as the swing default as there doesn't seem to be any
-#data before 1984.
+## Implement swing date to deal with 2-digit years in crop data files.
+## 1970 is chosen as the swing default as there doesn't seem to be any
+## data before 1984.
 swingYear<-function(year_2d,swing=70,century_pre=1900,century_post=2000) {
   if (year_2d < swing) {
     return(year_2d+century_post)
@@ -360,14 +371,14 @@ nameCharacters<-function(character_codes,character_prefix) {
   return(sprintf(paste(character_prefix,"%02d",sep=""),character_codes))
 }
 
-#Extract characters and varieties of interest, merge header into "year" column
+## Extract characters and varieties of interest, merge header into "year" column
 filterJData<-function(stddev_data,varieties_AFP,characters,character_prefix="sUP") {
   character_names<-nameCharacters(characters,character_prefix)
 
   header<-attr(stddev_data,"header")
   stddev_data$year=swingYear(header$year)
 
-##   #Check variety AFP OK - TODO: only require candidate varieties to be present
+##   Check variety AFP OK - TODO: only require candidate varieties to be present
 ##   missing_varieties<-setdiff(varieties_AFP,stddev_data$AFP)
 ##   missing_characters<-setdiff(characters,header$character_key[[1]]$CCode)
 
@@ -380,7 +391,7 @@ filterJData<-function(stddev_data,varieties_AFP,characters,character_prefix="sUP
 ##          "'. Missing Characters: [",paste(missing_characters,collapse=","),"]")
 ##   }
   
-  #Check characters OK.
+  ## Check characters OK.
   
   filtered_matrix<-stddev_data[ which(stddev_data[,'AFP'] %in% varieties_AFP), c("year","AFP","variety",character_names)]
   attr(filtered_matrix,"header")<-header
@@ -391,7 +402,7 @@ filterMData<-function(mean_data,varieties_AFP,characters,character_prefix="UP") 
   filterJData(mean_data,varieties_AFP,characters,character_prefix)
 }
 
-#The 'J' files contain the standard deviations for each character.
+## The 'J' files contain the standard deviations for each character.
 readJFile<-function(name,character_prefix="sUP",target_dir=".") {
 
   if (!file.exists(name)) {
@@ -408,7 +419,7 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
                          n=1,
                          col.names=c("crop_type","site","year","trial_type","unknown_field","trial_title"))
 
-                                        #Could scan() to a data frame then assign names via col.names
+    ## Could scan() to a data frame then assign names via col.names
     vassign(num_varieties,num_characters,num_replicates,num_plants_per_plot,
             values=as.integer(strsplit(gsub("^[[:space:]]*","",readLines(con,1)),"[[:space:]]+")[[1]]))
 
@@ -467,7 +478,7 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
   return(file_data)  
 }
 
-#The 'M' files contain means for each character. The format is the same as the 'J' files
+## The 'M' files contain means for each character. The format is the same as the 'J' files
 readMFile<-function(name,character_prefix="UP",target_dir=".") {
   readJFile(name,character_prefix,target_dir)
 }
