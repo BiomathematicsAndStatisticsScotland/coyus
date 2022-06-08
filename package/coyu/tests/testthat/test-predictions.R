@@ -54,6 +54,35 @@ test_that("Other dirty dataset fails sanity check",{
   expect_false(COYU_sanity_check(with_negs,test_2_year$coyu_parameters))
 })
 
+## Test sanity check for degrees freedom
+test_that("Bad trial setup creates warning - 2 year", {
+    degrees_freedom = test_2_year
+    degrees_freedom$coyu_parameters$references = test_2_year$coyu_parameters$references[1:9]
+    result = expect_warning(COYU_sanity_check(degrees_freedom$trial_data,
+                                              degrees_freedom$coyu_parameters),
+                            "Degrees of freedom in stddev data = 10 and 20 are required")
+
+    expect_true(result)
+})
+
+test_that("Bad trial setup fails sanity check - 3 year", {
+    degrees_freedom = test_3_year_withmissing
+    degrees_freedom$coyu_parameters$references =
+        test_3_year_withmissing$coyu_parameters$references[1:9]
+    result_bad = expect_warning(COYU_sanity_check(degrees_freedom$trial_data,
+                                                  degrees_freedom$coyu_parameters),
+                                "Degrees of freedom in plot mean data = 6 and 24 are required")
+
+    expect_false(result_bad)
+
+    degrees_freedom$coyu_parameters$references =
+        test_3_year_withmissing$coyu_parameters$references
+
+    result_ok = COYU_sanity_check(degrees_freedom$trial_data,
+                                  degrees_freedom$coyu_parameters)
+    expect_true(result_ok)
+})
+
 test_that("Predictions in resultset 1",{
   result_df <- COYU_results_as_dataframe(results1)
   expect_equal( nrow(result_df), 34)
@@ -169,3 +198,4 @@ test_that("Single candidate trial - marcin's data", {
 
   close(the_con)
 })
+

@@ -78,12 +78,25 @@
 COYU_sanity_check<-function(trial_data,coyu_parameters) UseMethod("COYU_sanity_check")
 
 
-#Constants
-COYU_MIN_REFERENCE_VARIETIES <- 10
+## Absolute mininum number of reference varieties in each year of the trial
+## for the code to run at all. 
+COYU_MIN_REFERENCE_VARIETIES <- 6 
+
+## Minimum number of common reference varieties between 2 years in a trial. 
 COYU_MIN_COMMON_REFERENCE_VARIETIES <- 8
 
+## Minimum degrees of freedom (reference variety * year combinations -
+## 4 * nyear) allowed in a 2 year trial
+##
+## This will yield a warning; the code will still run
+COYU_MIN_DF_2_YEAR = 20
+
+## Minimum degrees of freedom allowed in a 3 year trial 
+COYU_MIN_DF_3_YEAR = 24
+
 #' @export
-COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
+COYU_sanity_check.COYUs9TrialData<-function(trial_data,
+                                            coyu_parameters) {
   
   if (missing(trial_data) || missing(coyu_parameters)) {
     warning("Missing arguments. Aborting check.")
@@ -95,11 +108,11 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     return(FALSE)
   }
   
-  #N.B: this function is rather large and could be usefully split up
+  ## N.B: this function is rather large and could be usefully split up
   
   success <- TRUE
   
-  # check that basic colnames exist; if not abort immediately
+  ## check that basic colnames exist; if not abort immediately
   required_names <- c("year","AFP","variety")
   missing_cols <- setdiff(required_names,colnames(trial_data))
   if (length(missing_cols) > 0) {
@@ -109,7 +122,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     return(FALSE)
   }
   
-  # check column names agree with characters
+  ## check column names agree with characters
   
   expected_names <-c(name_mean(coyu_parameters$characters),name_stddev(coyu_parameters$characters)) 
   missing_measurements <- setdiff(expected_names,colnames(trial_data))
@@ -134,7 +147,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     success <- FALSE
   }
   
-  #Check data types in columns
+  ## Check data types in columns
   numeric_columns <- sapply(expected_names,function(x) { is.numeric(trial_data[,x]) })
   if (!all(numeric_columns)) {
     warning("Certain measurements in trial_data are not numeric and should be. Columns containing non-numeric values: ",
@@ -142,8 +155,9 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     success <- FALSE                  
   }
   
-  #TODO: this check may be too strict - e.g. case where analysing 4 years of data but only using 2 for uniformity
-  #Easy to fix by setting up a different trial file though.
+  ## Note: this check may be too strict - e.g. case where analysing 4
+  ##    years of data but only using 2 for uniformity    
+  ##    Easy to fix by setting up a different trial file though.
   num_trial_years <- nlevels(trial_data$year)
   
   if ( num_trial_years < 1 ||
@@ -167,7 +181,8 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
   data_cand<-get_varieties(trial_data,coyu_parameters$candidates)
   data_ref<-get_varieties(trial_data,coyu_parameters$references) 
   
-  #Check number of candidates is the same using 2 different techniques.
+  ## Check number of candidates is the same using 2 different
+  ## techniques.
   
   n_cand_byyear <- nrow(data_cand)/num_trial_years
   n_cand_bylevel <- length(unique(data_cand$AFP))
@@ -177,8 +192,13 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     success <- FALSE
   }
   
-  
-  #FOREACH year ensure 10 reference varieties without missing plot mean data, negative values or anything else horrible
+
+  character_means <- name_mean(coyu_parameters$characters)
+  character_stddevs <- name_stddev(coyu_parameters$characters)
+    
+  ## FOREACH year ensure that number of reference varieties is greater
+  ## than COYU_MIN_REFERENCE_VARIETIES (without missing plot mean
+  ## data, negative values or anything else horrible)
   for (year in levels(trial_data$year)) {
     
     check_iqr <- function(name,dataset) {
@@ -191,11 +211,9 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
       return(TRUE)
     }
     
-    candidates_year <- get_varieties(trial_data[trial_data$year==year,], variety_afp=coyu_parameters$candidates)
-    reference_year <- get_varieties(trial_data[trial_data$year==year,], variety_afp=coyu_parameters$references)
-    
-    character_means <- name_mean(coyu_parameters$characters)
-    character_stddevs <- name_stddev(coyu_parameters$characters)
+    candidates_year <- data_cand[data_cand$year==year,]
+      
+    reference_year <- data_ref[data_ref$year==year,]
     
     missing_candidates<-setdiff(coyu_parameters$candidates,candidates_year$AFP)
     if (length(missing_candidates) > 0 ) {
@@ -219,8 +237,11 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
       success <- FALSE
     }
     
-    #Check IQR for all characters, for both candidate and reference. A value of 0 will cause subsequent code to fail so we exit
-    #For single-character trials, we don't perform the IQR check as it doesn't make sense
+    ## Check IQR for all characters, for both candidate and
+    ## reference. A value of 0 will cause subsequent code to fail so
+    ## we exit
+    ##  
+    ## For single-character trials, we don't perform the IQR check as it doesn't make sense
     if (nrow(candidates_year) > 1) {
       check_cand_iqr <- check_iqr("Candidate",candidates_year)
     } else {
@@ -241,7 +262,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     ## both. This indicates something funny going on with the input
     ## datafiles.  However, it's also possible to handle this
     ## situation in COYU_single_year (by excluding such values)
-      
+     
     if (nrow(valid_reference_means) < COYU_MIN_REFERENCE_VARIETIES) {
       warning("Only ",nrow(valid_reference_means)," reference varieties with plot mean data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," are required")
       success <- FALSE
@@ -250,13 +271,51 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
     if (nrow(valid_reference_stddevs) < COYU_MIN_REFERENCE_VARIETIES) {
       warning("Only ",nrow(valid_reference_stddevs)," reference varieties with stddev data in year ",year,". ",COYU_MIN_REFERENCE_VARIETIES," are required")
       success <- FALSE
-    }
-    
+    }    
   }
-  
+
+  ## Check that number of degrees of freedom are sufficient 
+  if (num_trial_years > 2) {
+      required_df = COYU_MIN_DF_3_YEAR
+  } else {
+      required_df = COYU_MIN_DF_2_YEAR
+  }
+ 
+  apparent_degrees_freedom_means = (nrow(
+      data_ref[
+          !apply(
+               as.data.frame(data_ref[, character_means]),
+               1,
+               function(x) { any(is.na(x)) }
+           ),]
+  ) - 4 * coyu_parameters$num_trial_years)
+    
+  apparent_degrees_freedom_stddevs = (nrow(
+      data_ref[
+           !apply(
+               as.data.frame(data_ref[, character_stddevs]),
+               1,
+               function(x) { any(is.na(x)) }
+            ),]
+  ) - 4 * coyu_parameters$num_trial_years)
+
+  if (apparent_degrees_freedom_means < required_df) {
+       warning(sprintf("Degrees of freedom in plot mean data = %.3g and %.3g are required",
+                       apparent_degrees_freedom_means,
+                       required_df))
+  }
+
+
+  if (apparent_degrees_freedom_stddevs < required_df) {
+       warning(sprintf("Degrees of freedom in stddev data = %.3g and %.3g are required",
+                       apparent_degrees_freedom_stddevs,
+                       required_df))       
+  }
+    
   if ( num_trial_years > 1) {
     
-    #Generate pairs of years and check at least 8 reference varieties without missing data in common between pairs of years
+    ## Generate pairs of years and check at least 8 reference
+    ## varieties without missing data in common between pairs of years
     
     year_pair_check<-
       combn(levels(trial_data$year), 2,
@@ -281,7 +340,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,coyu_parameters) {
               return(length(common_varieties))    
             })
   } else {
-    warning("Skipping check for 8 reference varieties in each trial year as this is a single-year trial");
+    warning(sprintf("Skipping check for %g common reference varieties in each trial year as this is a single-year trial", COYU_MIN_COMMON_REFERENCE_VARIETIES));
   }
   
   return(success)
