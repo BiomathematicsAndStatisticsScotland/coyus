@@ -34,7 +34,8 @@ resultsCOYU<-function(results,data_input,probability_set,connection="") {
     write("\nPLOT FILE: \n",file=connection)
     write(sprintf("\t%s",data_input$plot_file),file=connection)
   }
-  
+
+  ## reset width to original setting
   options(current_width)
 }
  
