@@ -262,13 +262,25 @@ readUFile<-function(name,target_dir=".") {
   }, error=function(e) {
     checkForInvalidEncoding(name,e)   
   }, finally= closeIfOpen(con))
+
+  extractDataFileHeaders = function(data_files, loaded_data) {
+      return (setNames(
+                 lapply(loaded_data, function(data_elem) {
+                     return (as.list(attr(data_elem, "header")[1,]))
+                 }),
+                 data_files
+             )) 
+  }
     
   ## While reading M and J files, set to be directory containing this
   ## UX file If these calls fail the WD may be changed permanently but
   ## this is unlikely to matter.    
   means<-lapply(mean_files,readMFile,target_dir=dirname(name))
   stddevs<-lapply(stddev_files,readJFile,target_dir=dirname(name))
-           
+
+  m_file_info = extractDataFileHeaders(mean_files, means)
+  j_file_info = extractDataFileHeaders(stddev_files, stddevs)    
+    
   ## Get yearly means and standard deviations in 1 data frame.
   ## N.B variety names can be inconsistent between years, AFP is expected to be unique so we check this later
   means_by_year<-do.call("rbind",lapply(means,filterMData,varieties_in_trial,characters_in_trial))
@@ -345,11 +357,16 @@ readUFile<-function(name,target_dir=".") {
 
   class(all_data)<-c("COYUs9TrialData","data.frame")
 
+  
+  
+    
   return(modifyList(header,
                     list(trial_data=all_data,
                          coyu_parameters=coyu_parameters,
                          dataset_trial_years=dataset_trial_years,
-                         character_key=character_key
+                         character_key=character_key,
+                         m_file_info = m_file_info,
+                         j_file_info = j_file_info
                          )
                     )
          )
@@ -449,7 +466,7 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
     ## Note: cannot rely at this stage on either AFP number OR variety
     ## name being unique so we simply have these as columns in the dateset
     ## rather than rownames  
-    character_data<-matrix(scan(con,n=num_varieties*num_characters,quiet=TRUE),
+    character_data<-matrix(scan(con, n=num_varieties*num_characters, quiet=TRUE),
                            nrow=num_varieties,
                            ncol=num_characters,
                            byrow=TRUE,                     
