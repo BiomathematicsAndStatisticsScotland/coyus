@@ -442,9 +442,24 @@ COYU_print_results.COYUs9AllResults<-function(results,
       write("\n", file=connection)
       
       print_symbol_key(c(symbols_used,"_"),probability_set,connection)
-      cat(sprintf("RESIDUAL DEGREES OF FREEDOM: %5.3g\n\n",
-                  char_summary$degrees_freedom),
-          file=connection)
+    
+      if (is_3_year(coyu_parameters)) {
+          required_df = COYU_MIN_DF_3_YEAR
+      } else {
+          required_df = COYU_MIN_DF_2_YEAR
+      }
+      
+      if (char_summary$degrees_freedom < required_df) {
+          cat(sprintf("RESIDUAL DEGREES OF FREEDOM: %.3g\nWARNING - AT LEAST %.3g DF ARE NEEDED FOR ROBUST CONCLUSIONS\n\n",
+                      char_summary$degrees_freedom,
+                      required_df),
+              file=connection) 
+      } else {
+          cat(sprintf("RESIDUAL DEGREES OF FREEDOM: %.3g\n\n",
+                      char_summary$degrees_freedom),
+              file=connection)
+      }
+      
     })
   }  
   

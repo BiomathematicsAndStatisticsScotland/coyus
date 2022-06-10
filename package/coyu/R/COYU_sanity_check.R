@@ -82,8 +82,8 @@ COYU_sanity_check<-function(trial_data,coyu_parameters) UseMethod("COYU_sanity_c
 ## for the code to run at all. 
 COYU_MIN_REFERENCE_VARIETIES <- 6 
 
-## Minimum number of common reference varieties between 2 years in a trial. 
-COYU_MIN_COMMON_REFERENCE_VARIETIES <- 8
+## Minimum number of common reference varieties between 2 years in a trial.
+COYU_MIN_COMMON_REFERENCE_VARIETIES <- 6
 
 ## Minimum degrees of freedom (reference variety * year combinations -
 ## 4 * nyear) allowed in a 2 year trial
@@ -314,8 +314,9 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
     
   if ( num_trial_years > 1) {
     
-    ## Generate pairs of years and check at least 8 reference
-    ## varieties without missing data in common between pairs of years
+    ## Check that at least COYU_MIN_COMMON_REFERENCE_VARIETIES
+    ## reference varieties (without missing data) are common between
+    ## pairs of years
     
     year_pair_check<-
       combn(levels(trial_data$year), 2,
