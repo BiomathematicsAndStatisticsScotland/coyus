@@ -133,8 +133,8 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
   character_xlim=c(min(minmax_x)*0.95,max(minmax_x)*1.05)
   character_ylim=c(min(minmax_y)*0.95,max(minmax_y)*1.05)    
 
-  #Experimental feature to label each point with the AFP number
-  do_labels=FALSE
+  ## Experimental feature to label each candidate point with the AFP number
+  do_labels=TRUE
   
   year_plot_result<-sapply(char_result$mean_sd_data,function(year_result) {
     #Filter out any missing values
@@ -158,12 +158,12 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
 
     if (do_labels) {        
         ## Plot reference labels
-        text(filtered_mean,
-             filtered_sd,
-             adj=c(-0.5,1.2),
-             cex=0.5,
-             labels=names(filtered_sd),
-             col="black")
+#        text(filtered_mean,
+#             filtered_sd,
+#             adj=c(-0.5,1.2),
+#             cex=0.5,
+#             labels=names(filtered_sd),
+#             col="black")
 
         ## Plot candidate labels
         text(year_result$cand_mean,
