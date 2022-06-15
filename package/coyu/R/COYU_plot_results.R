@@ -81,18 +81,17 @@ COYU_plot_results.COYUs9AllResults<-function(results,character_key,plot_options=
   
   if (is_3_year(results)) {
     plottable<-"3_year_reject"
-    #3 plots, in 2x2 square
+    ## 3 plots, in 2x2 square
     plot_rows=c(2,2)
   } else {
     plottable<-"2_year_reject"
-    #2 plots, portrait format
+    ## 2 plots, portrait format
     plot_rows=c(2,1)
   }
   
-  #Set our rows for the number of plots we are doing and allocate space for outer top margin
+  ## Set our rows for the number of plots we are doing and allocate space for outer top margin
   par(mfrow=plot_rows,oma=c(0,0,2,0))
   
-  #TODO: could have single character plot function to use here
   plot_results<-sapply(results[plottable,],function(char_result) {
     character_name<-character_key[which(character_key[,"CCode"]==char_result$character_number),"CName"]
     COYU_plot_single_character(char_result,character_name)
@@ -118,7 +117,7 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
     character_name <- sprintf("%d",char_result$character_number)
   }
   
-  #Find maxima and minima across x and y scales for each character, ignoring missing values
+  ## Find maxima and minima across x and y scales for each character, ignoring missing values
   minmax_x<-sapply(char_result$mean_sd_data,function(year_result) {
     return(c(min(c(year_result$ref_mean,year_result$cand_mean), na.rm=TRUE),
              max(c(year_result$ref_mean,year_result$cand_mean), na.rm=TRUE)))
@@ -129,7 +128,7 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
              max(c(year_result$ref_logsd,year_result$cand_logsd), na.rm=TRUE)))      
   })
   
-  #Add a bit of extra space to each limit
+  ## Add a bit of extra space to each limit
   character_xlim=c(min(minmax_x)*0.95,max(minmax_x)*1.05)
   character_ylim=c(min(minmax_y)*0.95,max(minmax_y)*1.05)    
 
@@ -137,11 +136,11 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
   do_labels=TRUE
   
   year_plot_result<-sapply(char_result$mean_sd_data,function(year_result) {
-    #Filter out any missing values
+    ## Filter out any missing values
     filtered_sd=year_result$ref_logsd[!is.na(year_result$ref_logsd)]
     filtered_mean=year_result$ref_mean[names(filtered_sd)]
 
-    #Plot reference values as "X"
+    ## Plot reference values as "X"
     plot(filtered_mean,
          filtered_sd,
          xlim=character_xlim,
@@ -153,17 +152,17 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
     lines(year_result$x_line,
           year_result$y_line)
 
-    #Plot candidates as "C"
+    ## Plot candidates as "C"
     points(year_result$cand_mean, year_result$cand_logsd,pch="c",col="red")
 
     if (do_labels) {        
         ## Plot reference labels
-#        text(filtered_mean,
-#             filtered_sd,
-#             adj=c(-0.5,1.2),
-#             cex=0.5,
-#             labels=names(filtered_sd),
-#             col="black")
+        ## text(filtered_mean,
+        ##      filtered_sd,
+        ##      adj=c(-0.5,1.2),
+        ##      cex=0.5,
+        ##      labels=names(filtered_sd),
+        ##      col="black")
 
         ## Plot candidate labels
         text(year_result$cand_mean,
@@ -175,8 +174,8 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
     }
   })
   
-  #Force a page break in 3 year mode
-  #TODO: obey plot_options variable here - if plot_options==2, format plots 1 per page
+  ## Force a page break in 3 year mode
+  ## TODO: obey plot_options variable here - if plot_options==2, format plots 1 per page
   if (is_3_year(char_result)) {
     plot.new()
   }
