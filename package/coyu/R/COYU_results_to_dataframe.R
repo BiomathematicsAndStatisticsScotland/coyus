@@ -35,7 +35,8 @@
 #' Transform a COYU results object into a useful dataframe format. 
 #'
 #' @param results COYUs9AllResults object
-#' @param alpha_name Optional. Name of the dataset to transform (e.g. "2_year_reject"). If not provided first_dataset will be used to find a dataset. 
+#' @param alpha_name Optional. Name of the dataset to transform (e.g. "2_year_reject"). If not provided first_dataset will be used to find a dataset.
+#' @param what Optional. Whether to provide "candidate" or "reference" data. Default "candidate"
 #' @return data frame containing the results of interest
 #' @examples
 #' ## an example using the test_2_year example included in the COYU package
@@ -63,30 +64,47 @@
 #'
 #' @export                                        
 COYU_results_as_dataframe <- function(results,
-                                      alpha_name=first_dataset(results)) {
+                                      alpha_name=first_dataset(results),
+                                      what = c("candidate")) {
   UseMethod("COYU_results_as_dataframe")
 }
 
 #'@export
 COYU_results_as_dataframe.COYUs9AllResults<-function(results,
-                                                     alpha_name=first_dataset(results)) {
+                                                     alpha_name=first_dataset(results),
+                                                     what="candidate") {
   
-  #Select results we're interested in
+
+  if (what=="candidate") {
+      target_columns=c("candidate_varieties","candidate_afp",
+                       "extrapolation","extrapolation_factor",
+                       "candidate_means","candidate_actual_logSD","candidate_adjusted_logSD",
+                       "candidate_COYU_pvalue","candidate_prediction_err","candidate_coyu_threshold",
+                       "candidate_not_uniform")
+  } else if (what=="reference") {
+      target_columns=c("reference_varieties","reference_afp",
+                       "reference_means","reference_actual_logSD","reference_adjusted_logSD")
+  } else {
+      stop("Invalid value for parameter 'what'=%s. Valid values are c('candidate','reference')",
+           what)
+  }
+
+  ## Select results we're interested in
   output_results<-as.matrix(results[c("character",alpha_name), ])
-  rownames(output_results)<-c("character","result")
-  
-  target_columns=c("candidate_varieties","candidate_afp",
-                   "extrapolation","extrapolation_factor",
-                   "candidate_means","candidate_actual_logSD","candidate_adjusted_logSD",
-                   "candidate_COYU_pvalue","candidate_prediction_err","candidate_coyu_threshold",
-                   "candidate_not_uniform")
+  rownames(output_results)<-c("character","result")    
   
   do.call(rbind,
           apply(output_results,2,function(x) {
-            candidates<-x$result$candidates
-            characters<-data.frame(character_number=rep(x$character,nrow(candidates)))
+
+            if (what=="candidate") {                
+                varieties =x$result$candidates
+            } else {
+                varieties = x$result$reference
+            }
             
-            cbind(characters,candidates[,target_columns])
+            characters<-data.frame(character_number=rep(x$character,nrow(varieties)))
+            
+            cbind(characters, varieties[,target_columns])
           })) 
 }
 
