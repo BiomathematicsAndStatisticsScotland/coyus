@@ -39,8 +39,9 @@
 #' 
 #' @param results COYUs9Results object containing the data to plot
 #' @param character_key Mapping of character number to name. This can be the character_key in the COYUs9TrialData object and can be subsetted as required
-#' @param plot_options Control plot options. This is not currently used
+#' @param plot_options Control plot options. If plot_options==2, a new page/device will be started for each plot. Other values will lead to the default behaviour. 
 #' @param plot_file File name to plot to. If NULL, current graphics device is used.
+#' @param candidates The candidate varieties to plot, by AFP number. If value is "ALL" (default), all candidates are plotted. Any candidates not included here will be omitted from the plots 
 #' @examples
 #' ## an example using the test_2_year example included in the COYU package
 #' 
@@ -68,11 +69,15 @@
 #' @export
 #' @importFrom grDevices dev.off pdf
 #' @importFrom graphics plot lines points plot.new title par
-COYU_plot_results <- function(results,character_key,plot_options=1,plot_file=NULL) UseMethod("COYU_plot_results")
+COYU_plot_results <- function(results,character_key,plot_options=1,plot_file=NULL, candidates="ALL") UseMethod("COYU_plot_results")
 
 
 #' @export
-COYU_plot_results.COYUs9AllResults<-function(results,character_key,plot_options=1,plot_file=NULL) {
+COYU_plot_results.COYUs9AllResults<-function(results,
+                                             character_key,
+                                             plot_options=1,
+                                             plot_file=NULL,
+                                             candidates="ALL") {
   
   if (!is.null(plot_file)) {
     pdf(file=plot_file,onefile=TRUE)
@@ -94,7 +99,7 @@ COYU_plot_results.COYUs9AllResults<-function(results,character_key,plot_options=
   
   plot_results<-sapply(results[plottable,],function(char_result) {
     character_name<-character_key[which(character_key[,"CCode"]==char_result$character_number),"CName"]
-    COYU_plot_single_character(char_result,character_name)
+    COYU_plot_single_character(char_result, character_name, candidates, plot_options)
   })
   
   dev.off()
@@ -106,26 +111,54 @@ COYU_plot_results.COYUs9AllResults<-function(results,character_key,plot_options=
 #'
 #' @param char_result COYUs9Results object to plot
 #' @param character_name Optional name for the plot title
-#' 
+#' @param candidates The candidate varieties to plot, by AFP number. If value is "ALL" (default), all candidates are plotted. Any candidates not included here will be omitted from the plots 
+#' @param plot_options Controls plotting. If plot_options==2, a new page will be started for each plot
 #'@export
-COYU_plot_single_character <- function(char_result,character_name) UseMethod("COYU_plot_single_character")
+COYU_plot_single_character <- function(char_result, character_name, candidates="ALL", plot_options=1) UseMethod("COYU_plot_single_character")
 
 #'@export
-COYU_plot_single_character.COYUs9Results <- function(char_result,character_name) {
+COYU_plot_single_character.COYUs9Results <- function(char_result,
+                                                     character_name,
+                                                     candidates="ALL",
+                                                     plot_options=1) {
   
   if (missing(character_name)) {
     character_name <- sprintf("%d",char_result$character_number)
   }
-  
+
+  ##Check our specified candidates are valid
+  valid_candidates = as.numeric(as.character(char_result$candidates$candidate_afp))
+  if (candidates=="ALL") {
+      active_candidates = valid_candidates
+  } else if (!is.numeric(candidates)) {         
+      stop(sprintf("Argument 'candidates' must be \"ALL\" or numeric. Value is %s",
+                   paste(candidates, collapse=",")))
+      
+  } else if (! candidates %in% valid_candidates) {
+      stop(sprintf("Argument candidates must all be present in the results data. Value is %s, valid candidates are %s",
+                   paste(candidates, collapse=","),
+                   paste(valid_candidates, collapse=",")))
+  } else {
+      active_candidates = candidates
+  }
+    
   ## Find maxima and minima across x and y scales for each character, ignoring missing values
   minmax_x<-sapply(char_result$mean_sd_data,function(year_result) {
-    return(c(min(c(year_result$ref_mean,year_result$cand_mean), na.rm=TRUE),
-             max(c(year_result$ref_mean,year_result$cand_mean), na.rm=TRUE)))
+    return(c(min(c(year_result$ref_mean,
+                   year_result$cand_mean[ names(year_result$cand_mean)==active_candidates ]),
+                 na.rm=TRUE),
+             max(c(year_result$ref_mean,
+                   year_result$cand_mean[ names(year_result$cand_mean)==active_candidates ]),
+                 na.rm=TRUE)))
   })
   
   minmax_y<-sapply(char_result$mean_sd_data,function(year_result) {
-    return(c(min(c(year_result$ref_logsd,year_result$cand_logsd), na.rm=TRUE),
-             max(c(year_result$ref_logsd,year_result$cand_logsd), na.rm=TRUE)))      
+    return(c(min(c(year_result$ref_logsd,
+                   year_result$cand_logsd[ names(year_result$cand_logsd)==active_candidates ]),
+                 na.rm=TRUE),
+             max(c(year_result$ref_logsd,
+                   year_result$cand_logsd[ names(year_result$cand_logsd)==active_candidates ]),
+                 na.rm=TRUE)))
   })
   
   ## Add a bit of extra space to each limit
@@ -135,10 +168,10 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
   ## Experimental feature to label each candidate point with the AFP number
   do_labels=TRUE
   
-  year_plot_result<-sapply(char_result$mean_sd_data,function(year_result) {
+  year_plot_result<-sapply(char_result$mean_sd_data, function(year_result) {
     ## Filter out any missing values
-    filtered_sd=year_result$ref_logsd[!is.na(year_result$ref_logsd)]
-    filtered_mean=year_result$ref_mean[names(filtered_sd)]
+    filtered_sd=year_result$ref_logsd[ !is.na(year_result$ref_logsd) ]
+    filtered_mean=year_result$ref_mean[ names(filtered_sd) ]
 
     ## Plot reference values as "X"
     plot(filtered_mean,
@@ -153,7 +186,10 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
           year_result$y_line)
 
     ## Plot candidates as "C"
-    points(year_result$cand_mean, year_result$cand_logsd,pch="c",col="red")
+    active_cand_mean = year_result$cand_mean[ names(year_result$cand_mean)==active_candidates ]
+    active_cand_logsd = year_result$cand_logsd[ names(year_result$cand_logsd)==active_candidates ]
+      
+    points(active_cand_mean, active_cand_logsd, pch="c", col="red")
 
     if (do_labels) {        
         ## Plot reference labels
@@ -165,20 +201,22 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,character_name)
         ##      col="black")
 
         ## Plot candidate labels
-        text(year_result$cand_mean,
-             year_result$cand_logsd,
+        text(active_cand_mean,
+             active_cand_logsd,
              adj=c(-0.5,1.2),
-             labels=names(year_result$cand_logsd),
+             labels=names(active_cand_logsd),
              cex=0.5,
              col="red")
     }
   })
   
-  ## Force a page break in 3 year mode
-  ## TODO: obey plot_options variable here - if plot_options==2, format plots 1 per page
-  if (is_3_year(char_result)) {
+  ## Force a page break in 3 year, and if plot_options==2
+  if (is_3_year(char_result) || plot_options==2) {
     plot.new()
   }
   
-  title(sprintf("Character '%s'  (%d)",gsub("^\\s+|\\s+$", "", character_name),char_result$character_number), outer=TRUE)
+  title(sprintf("Character '%s'  (%d)",
+                gsub("^\\s+|\\s+$", "", character_name),
+                char_result$character_number),
+        outer=TRUE)
 }
