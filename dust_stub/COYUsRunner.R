@@ -48,17 +48,45 @@ capture_warnings <- function() {
             results<-COYU_all_results(data_input$trial_data,
                                       data_input$coyu_parameters,
                                       data_input$probability_sets)
-            
-            discard<-COYU_plot_results(results[[1]],
-                                       data_input$character_key,
-                                       plot_file=data_input$plot_file)
+
+            ## Respect the DUST plot options
+            if (data_input$plot_options == 1) {
+                ## Plot all the candidates on the per-year charts. For statistical purposes
+                all_candidates_plot_file = getOutputFile(data_input, "_all_candidates.pdf")
+                discard<-COYU_plot_results(results[[1]],
+                                           data_input$character_key,
+                                           plot_file=all_candidate_plot_file,
+                                           plot_options=data_input$plot_options)
+            }
+
+            if (data_input$plot_options == 2) {
+                ## Plot each of the candidates on a per-year chart, without any of the others.
+                ## Useful for showing to breeders
+                for (candidate in data_input$coyu_parameters$candidates) {
+                    per_candidate_plot_file = getOutputFile(data_input,
+                                                            sprintf("candidate_%s.pdf", candidate))
+                    discard = COYU_plot_results(results[[1]],
+                                                data_input$character_key,
+                                                plot_file=per_candidate_plot_file,
+                                                candidates=c(candidate),
+                                                plot_options=data_input$plot_options)
+                }
+            }
+              
             
             con<-file(data_input$output_file, open="w")
             ignore<-formatResults(data_input, results, con)
             close(con)
 
-            results_df = COYU_results_as_dataframe(results[[1]])
-            write.csv(results_df,file=data_input$csv_file)
+            if (data_input$plot_options >= 0) {
+                ## output candidate and reference varieties data in CSV form
+                results_df = COYU_results_as_dataframe(results[[1]], what="candidate")
+                write.csv(results_df,file=data_input$candidate_csv_file)
+
+                results_df_ref = COYU_results_as_dataframe(results[[1]], what="reference")
+                write.csv(results_df_ref,file=data_input$reference_csv_file)
+            }
+              
           },
           warning=function(w) {
               new_w = warnings_list
