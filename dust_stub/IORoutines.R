@@ -82,7 +82,7 @@ pathRelativeToTargetDir<-function(input_path, target_dir=".") {
 }
 
 readCoyu9File<-function(name) {
-  ## Problems reading decimal values in locales other than en_gb (due to use of commas as decimal separator)
+  ## TODO: Problems reading decimal values in locales other than en_gb (due to use of commas as decimal separator)
   
   target_dir<-dirname(name)
 
@@ -99,13 +99,13 @@ readCoyu9File<-function(name) {
     output_dir = dirname(data_file$output_file)
     
     trial_id=gsub("^(\\w+).*\\.DAT$","\\1",basename(data_file$input_file),ignore.case=TRUE,perl=TRUE)
+
+    data_file$output_file_prefix=normalizePath(
+        sprintf("%s/%s",output_dir,paste("COYUs_",trial_id,"_",Sys.Date(),sep="")),
+        mustWork=FALSE)
     
-    data_file$plot_file=normalizePath(
-      sprintf("%s/%s",output_dir,paste("COYUs_",trial_id,"_",Sys.Date(),".pdf",sep="")),
-      mustWork=FALSE)
-    data_file$csv_file=normalizePath(
-      sprintf("%s/%s",output_dir,paste("COYUs_",trial_id,"_",Sys.Date(),".csv",sep="")),
-      mustWork=FALSE)
+    data_file$candidate_csv_file=paste(data_file$output_file_prefix, "_candidate_data.csv", sep="")
+    data_file$reference_csv_file=paste(data_file$output_file_prefix, "_reference_data.csv", sep="")
     
     data_file$prob_set_count=scan(con,what=integer(),n=1,quiet=TRUE)
     data_file$plot_options=scan(con,what=integer(),n=1,quiet=TRUE)
@@ -131,6 +131,12 @@ readCoyu9File<-function(name) {
   
   class(data_file)<-c("DustData","list")
   return(data_file)
+}
+
+getOutputFile <- function(dust_data, suffix=".dat") UseMethod("getOutputFile")
+
+getOutputFile.DustData <- function(dust_data, suffix=".dat") {
+    return(paste(dust_data$output_file_prefix, trimws(suffix, which="both"), sep="", collapse=""))
 }
 
 anonymiseDataset<-function(data_file,anonymise_afp=FALSE,anonymise_name=TRUE) UseMethod("anonymiseDataset")
@@ -475,9 +481,7 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
   }, error=function(e) {
     checkForInvalidEncoding(name,e)
   }, finally= {
-    if (isOpen(con)) {
-      close(con)
-    }
+      closeIfOpen(con)
   })
 
   ## -1 (or less) is apparently the code for missing values; this is not documented in the DUST manual
