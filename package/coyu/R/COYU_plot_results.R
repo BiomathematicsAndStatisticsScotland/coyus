@@ -69,7 +69,11 @@
 #' @export
 #' @importFrom grDevices dev.off pdf
 #' @importFrom graphics plot lines points plot.new title par
-COYU_plot_results <- function(results,character_key,plot_options=1,plot_file=NULL, candidates="ALL") UseMethod("COYU_plot_results")
+COYU_plot_results <- function(results,
+                              character_key,
+                              plot_options=1,
+                              plot_file=NULL,
+                              candidates="ALL") UseMethod("COYU_plot_results")
 
 
 #' @export
@@ -114,7 +118,10 @@ COYU_plot_results.COYUs9AllResults<-function(results,
 #' @param candidates The candidate varieties to plot, by AFP number. If value is "ALL" (default), all candidates are plotted. Any candidates not included here will be omitted from the plots 
 #' @param plot_options Controls plotting. If plot_options==2, a new page will be started for each plot
 #'@export
-COYU_plot_single_character <- function(char_result, character_name, candidates="ALL", plot_options=1) UseMethod("COYU_plot_single_character")
+COYU_plot_single_character <- function(char_result,
+                                       character_name,
+                                       candidates="ALL",
+                                       plot_options=1) UseMethod("COYU_plot_single_character")
 
 #'@export
 COYU_plot_single_character.COYUs9Results <- function(char_result,
@@ -164,9 +171,6 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,
   ## Add a bit of extra space to each limit
   character_xlim=c(min(minmax_x)*0.95,max(minmax_x)*1.05)
   character_ylim=c(min(minmax_y)*0.95,max(minmax_y)*1.05)    
-
-  ## Experimental feature to label each candidate point with the AFP number
-  do_labels=TRUE
   
   year_plot_result<-sapply(char_result$mean_sd_data, function(year_result) {
     ## Filter out any missing values
@@ -182,8 +186,53 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,
          ylab="log (SD+1)",
          main=paste("Year ",year_result$year),
          pch=4)
+
+    ## Calculate the "extension lines" for our fit line by taking the
+    ## last N points at each end and fitting a straight line to them
+    ##
+    ## There are other things we could do here, e.g. provide an
+    ## extend_line() functional argument to this function that would
+    ## allow user-controlled line extensions (and provide a default
+    ## implementation)
+    ##
+    ## See also comments in COYU_single_year about what we might
+    ## like to return to the end user of this code
+    points_to_fit = 100
+    data_below = data.frame(x_line= head(year_result$x_line, points_to_fit),
+                            y_line= head(year_result$y_line, points_to_fit))
+    data_above = data.frame(x_line= tail(year_result$x_line, points_to_fit),
+                            y_line= tail(year_result$y_line, points_to_fit))
+
+    lm_below = lm(y_line ~ x_line, data=data_below)
+    lm_above = lm(y_line ~ x_line, data=data_above)    
+    
+    ## Calculate the extension line with y=mx + b from our linear model
+    slope_func = function(x_point, model) {
+        intercept = model$coefficients[1]
+        slope = model$coefficients[2]
+        return (slope * x_point + intercept)
+    }
+
+    x_points_below = seq(character_xlim[1], min(data_below$x_line), length.out=20)
+    y_points_below = sapply( x_points_below, slope_func, lm_below )
+
+    x_points_above = seq(max(data_above$x_line), character_xlim[2], length.out=20)
+    y_points_above = sapply( x_points_above, slope_func, lm_above )
+      
+    lines(x=x_points_below,
+          y=y_points_below,
+          lty=2,
+          col="blue")
+
+    lines(x=x_points_above,
+          y=y_points_above,
+          lty=2,
+          col="blue")
+      
+    ## Plot the actual fit spline returned from COYU_single_year
     lines(year_result$x_line,
-          year_result$y_line)
+          year_result$y_line,
+          col="blue")
 
     ## Plot candidates as "C"
     active_cand_mean = year_result$cand_mean[ names(year_result$cand_mean)==active_candidates ]
@@ -191,23 +240,15 @@ COYU_plot_single_character.COYUs9Results <- function(char_result,
       
     points(active_cand_mean, active_cand_logsd, pch="c", col="red")
 
-    if (do_labels) {        
-        ## Plot reference labels
-        ## text(filtered_mean,
-        ##      filtered_sd,
-        ##      adj=c(-0.5,1.2),
-        ##      cex=0.5,
-        ##      labels=names(filtered_sd),
-        ##      col="black")
 
-        ## Plot candidate labels
-        text(active_cand_mean,
-             active_cand_logsd,
-             adj=c(-0.5,1.2),
-             labels=names(active_cand_logsd),
-             cex=0.5,
-             col="red")
-    }
+    ## Plot candidate labels
+    text(active_cand_mean,
+         active_cand_logsd,
+         adj=c(-0.5,1.2),
+         labels=names(active_cand_logsd),
+         cex=0.5,
+         col="red")
+    
   })
   
   ## Force a page break in 3 year, and if plot_options==2
