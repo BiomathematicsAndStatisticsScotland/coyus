@@ -55,7 +55,7 @@ capture_warnings <- function() {
                 all_candidates_plot_file = getOutputFile(data_input, "_all_candidates.pdf")
                 discard<-COYU_plot_results(results[[1]],
                                            data_input$character_key,
-                                           plot_file=all_candidate_plot_file,
+                                           plot_file=all_candidates_plot_file,
                                            plot_options=data_input$plot_options)
             }
 
