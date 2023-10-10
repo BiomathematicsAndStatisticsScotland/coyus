@@ -78,36 +78,9 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     
     char_results<-results_col[[first_dataset]]
 
-    summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD")    
+    summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD")
+
     
-    ## Ensure we always have the correct number of values
-    pad_values_by_name<-function(target_names,x) {
-      indexes=match(setdiff(target_names, names(x)), target_names) 
-      padded=pad_at_index(x,indexes)
-      names(padded)=target_names
-      return(padded)
-    }        
-
-    extra_cols_as_df<-function(varieties,field_name, col_name_template) {
-        column_names= c("AFP",
-                        sapply(char_results$mean_sd_data,
-                               function(x) {
-                                   sprintf(col_name_template, x$year)
-                               }))
-
-        ret=as.data.frame(
-            cbind(sort(varieties),
-                  matrix(sapply(char_results$mean_sd_data,
-                                function(x) {
-                                    pad_values_by_name(sort(varieties),x[[field_name]]) }
-                                ),
-                         nrow=length(varieties),
-                         ncol=get_num_trial_years(coyu_parameters)))
-            )
-
-        colnames(ret)=column_names
-        return(ret)
-    }
 
     candidate_summary<-as.data.frame(
         cbind(char_results$candidates[,c("candidate_afp")],
@@ -121,11 +94,19 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     colnames(candidate_summary)=summary_col_names
     candidate_summary=merge(
         merge(candidate_summary,
-              extra_cols_as_df(coyu_parameters$candidates, "cand_mean", "Mean_%s"),
+              extra_cols_as_df(char_results,
+                               get_num_trial_years(coyu_parameters),
+                               coyu_parameters$candidates,
+                               "cand_mean",
+                               "Mean_%s"),
               by=c("AFP"),
               sort=FALSE,
               all.x=TRUE),
-        extra_cols_as_df(coyu_parameters$candidates, "cand_logsd", "Log(SD+1)_%s"),
+        extra_cols_as_df(char_results,
+                         get_num_trial_years(coyu_parameters),
+                         coyu_parameters$candidates,
+                         "cand_logsd",
+                         "Log(SD+1)_%s"),
         by=c("AFP"),
         sort=FALSE,
         all.x=TRUE)
@@ -143,11 +124,19 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
 
     reference_summary=merge(
         merge(reference_summary,
-              extra_cols_as_df(coyu_parameters$reference, "ref_mean", "Mean_%s"),
+              extra_cols_as_df(char_results,
+                               get_num_trial_years(coyu_parameters),
+                               coyu_parameters$reference,
+                               "ref_mean",
+                               "Mean_%s"),
               by=c("AFP"),
               sort=FALSE,
               all.x=TRUE),
-        extra_cols_as_df(coyu_parameters$reference, "ref_logsd", "Log(SD+1)_%s"),
+        extra_cols_as_df(char_results,
+                         get_num_trial_years(coyu_parameters),
+                         coyu_parameters$reference,
+                         "ref_logsd",
+                         "Log(SD+1)_%s"),
         by=c("AFP"),
         sort=FALSE,
         all.x=TRUE)
