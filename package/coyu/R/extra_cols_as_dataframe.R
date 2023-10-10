@@ -1,4 +1,4 @@
-#' extra_cols_as_df
+#' mean_sd_cols_as_dataframe
 # Copyright (c) 2015, Biomathematics and Statistics Scotland
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#' Return a data frame with columns for data from all the years in the trial.
-#' Usually used to combine means and logSD values for all years into a single data frame
+#' Return a data frame with columns for mean and SD data from all the
+#' years in the trial.  Usually used to combine means and logSD values
+#' for all years into a single data frame
 #'
 #' @param char_results Character Results, of type COYUs9Results
 #' @param trial_years Number of years in the trial. Can be derived
@@ -45,14 +46,14 @@
 #'     will be replaced with the year
 #' @return A data frame keyed by AFP number with all the values of
 #'     field_name for each year of the trial for this variety
-extra_cols_as_df<-function(char_results,
+mean_sd_cols_as_dataframe<-function(char_results,
                            trial_years,
                            varieties,
                            field_name,
                            col_name_template)
-    UseMethod("extra_cols_as_df")
+    UseMethod("mean_sd_cols_as_dataframe")
 
-extra_cols_as_df.COYUs9Results<-function(char_results,
+mean_sd_cols_as_dataframe.COYUs9Results<-function(char_results,
                                          trial_years,
                                          varieties,
                                          field_name,
