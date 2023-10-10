@@ -43,7 +43,7 @@ Collate:
     'is_year.R'
     'pad_at_index.R'
     'pad_values_by_name.R'
-    'extra_cols_as_dataframe.R'
+    'mean_sd_cols_as_dataframe.R'
     'run_COYU.R'
     'smooth_matrix.R'
     'variety_matches.R'
