@@ -95,7 +95,7 @@ COYU_single_year<-function(yr.i, dat.ref, dat.cand){
     Ynew.fit<-predict(ref_variety_spline,
                       dat.cand.i$mn)$y
     cand_adj_logSD<-grand_mean+dat.cand.i$logSD-Ynew.fit
-    
+    names(cand_adj_logSD) = dat.cand.i$AFP
     
     ## Fix for data containing missing values for means - 21.04.15
     Y.fit.full<-numeric(length=length(dat.ref.i.full$mn)) 
@@ -104,6 +104,7 @@ COYU_single_year<-function(yr.i, dat.ref, dat.cand){
     is.na(Y.fit.full)<-which(is.na(dat.ref.i.full$mn)) 
     
     ref_adj_logSD<-grand_mean+dat.ref.i.full$logSD-Y.fit.full 
+    names(ref_adj_logSD) = dat.ref.i.full$AFP
     
     ## next bit get stuff for working out SEs -
     ## TODO: - separate function for this? Seems unrelated to most other stuff in COYU_single_year
@@ -185,8 +186,10 @@ COYU_single_year<-function(yr.i, dat.ref, dat.cand){
         y_line=predict(ref_variety_spline, ref_mean_plot_x)$y,
         ref_mean=ref_mean,
         ref_logsd=ref_sd,
+        ref_adjlogsd=ref_adj_logSD[ref_sorted$AFP],
         cand_mean=cand_mean,
-        cand_logsd=cand_sd
+        cand_logsd=cand_sd,
+        cand_adjlogsd=cand_adj_logSD[cand_sorted$AFP]
     )
     
     candidate_results <- cbind(dat.cand.i[c("year","variety","AFP","mn","logSD")],

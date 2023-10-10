@@ -74,17 +74,28 @@ COYU_results_as_dataframe.COYUs9AllResults<-function(results,
                                                      alpha_name=first_dataset(results),
                                                      what="candidate") {
   
-
+  
   if (what=="candidate") {
       target_columns=c("candidate_varieties","candidate_afp",
                        "extrapolation","extrapolation_factor",
                        "candidate_means","candidate_actual_logSD","candidate_adjusted_logSD",
                        "candidate_COYU_pvalue","candidate_prediction_err","candidate_coyu_threshold",
                        "candidate_not_uniform")
+      afp_col="candidate_afp"
+      mean_col="cand_mean"
+      logsd_col="cand_logsd"
+      adj_logsd_col="cand_adjlogsd"
+      variety_col="candidate_varieties"      
   } else if (what=="reference") {
       target_columns=c("reference_varieties","reference_afp",
                        "reference_means","reference_actual_logSD","reference_adjusted_logSD")
+      afp_col="reference_afp"
+      mean_col="ref_mean"
+      logsd_col="ref_logsd"
+      adj_logsd_col="ref_adjlogsd"
+      variety_col="reference_varieties"
   } else {
+      ## TODO: add "combined" option which will emit a single dataframe with a "is_candidate" column
       stop("Invalid value for parameter 'what'=%s. Valid values are c('candidate','reference')",
            what)
   }
@@ -93,19 +104,44 @@ COYU_results_as_dataframe.COYUs9AllResults<-function(results,
   output_results<-as.matrix(results[c("character",alpha_name), ])
   rownames(output_results)<-c("character","result")    
   
-  do.call(rbind,
-          apply(output_results,2,function(x) {
+  ret=do.call(rbind,
+              apply(output_results,2,function(x) {
 
-            if (what=="candidate") {                
-                varieties =x$result$candidates
-            } else {
-                varieties = x$result$reference
-            }
-            
-            characters<-data.frame(character_number=rep(x$character,nrow(varieties)))
-            
-            cbind(characters, varieties[,target_columns])
-          })) 
+                  if (what=="candidate") {                
+                      varieties =x$result$candidates
+                  } else {
+                      varieties = x$result$reference
+                  }
+
+                  mean_data = mean_sd_cols_as_dataframe(x$result,
+                                                        varieties[,afp_col],
+                                                        mean_col,
+                                                        "Mean_%s")
+                  sd_data = mean_sd_cols_as_dataframe(x$result,
+                                                      varieties[,afp_col],
+                                                      logsd_col,
+                                                      "Log(SD+1)_%s")
+                  adj_logsd_data = mean_sd_cols_as_dataframe(x$result,
+                                                             varieties[,afp_col],
+                                                             adj_logsd_col,
+                                                             "AdjLog(SD+1)_%s")
+                  
+                  characters<-data.frame(character_number=rep(x$character,nrow(varieties)))
+
+                  ret2 = cbind(characters, varieties[,target_columns])
+
+                  merge(
+                      ret2,
+                      merge(mean_data,
+                            merge(sd_data,
+                                  adj_logsd_data,
+                                  by=c("AFP")),
+                            by=c("AFP")),
+                      by.x=afp_col,
+                      by.y=c("AFP"))
+              }))
+
+    return(ret)
 }
 
 
