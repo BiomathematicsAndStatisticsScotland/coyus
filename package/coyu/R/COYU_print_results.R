@@ -184,12 +184,24 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     1,
     as.list)
     )             
-    
+      
+    extrapolation_symbols = sapply(char_results$candidates$extrapolation_factor,
+                                   function(extrp_val) {
+                                       if (!missing(extrp_val) && !is.na(extrp_val)) {
+                                           if (extrp_val > 1.2 && extrp_val <= 1.5) {
+                                               return (c("!"))
+                                           } else if (extrp_val > 1.5) {
+                                               return (c("$"))
+                                           }
+                                       }
+                                       return (c(""))
+                                   })
+      
     #TODO: ideally we'd indicate which years were extrapolated too but this data is not exposed yet
     candidate_symbols <- data.frame(AFP=candidate_summary$AFP,
                                     Variety=c(""),
                                     Extrapolation=c(""),
-                                    Char_Mean=c("","!")[char_results$candidates$extrapolation+1],
+                                    Char_Mean=extrapolation_symbols,
                                     Adj_LogSD=sd_symbols,
                                     stringsAsFactors = FALSE, 
                                     matrix("",
@@ -276,7 +288,8 @@ print_symbol_key <- function(symbols_used,probability_set,connection="") {
                 ":"=sprintf("SD NOT YET ACCEPTABLE ON OVER-YEARS CRITERION AFTER 2 YEARS WITH PROBABILITY %7.4f",
                             probability_set["2_year_accept"]),
                 "_"="NO VERDICT.",
-                "!"="EXTRAPOLATION DETECTED.")
+                "!"="There is an extrapolation issue but it is limited. The COYU verdicts should be reviewed alongside the COYU graphs to verify that the decisions are sensible.",
+                "$"="There is serious extrapolation. The COYU decisions may be unreliable. In these cases, decisions must be made based on the data directly. The graphs in the PDF output may be of use. See TGP8")
   
   #Fortran also has these: # - WARNING - SD, CHARACTER MEAN, OR ADJUSTED SD IS UNUSUAL
   # X  - SD EXCEEDS 1.265 TIMES MEAN OF REFERENCE VARIETIES,
@@ -397,9 +410,9 @@ COYU_print_results.COYUs9AllResults<-function(results,
   }
   
   if (is_3_year(coyu_parameters)) {
-    symbols_used<-c("!","*")
+    symbols_used<-c("$", "!","*")
   } else {
-    symbols_used<-c("!","+",":")
+    symbols_used<-c("$", "!","+",":")
   }
   
   between_plant_summary<-format_between_plant_summary(coyu_parameters,results,probability_set)
