@@ -35,8 +35,6 @@
 #' for all years into a single data frame
 #'
 #' @param char_results Character Results, of type COYUs9Results
-#' @param trial_years Number of years in the trial. Can be derived
-#'     with the get_num_trial_years(coyu_parameters) function
 #' @param varieties List of variety names to extract from the
 #'     character results.
 #' @param field_name The field name to extract from the character
@@ -47,17 +45,17 @@
 #' @return A data frame keyed by AFP number with all the values of
 #'     field_name for each year of the trial for this variety
 mean_sd_cols_as_dataframe<-function(char_results,
-                           trial_years,
                            varieties,
                            field_name,
                            col_name_template)
     UseMethod("mean_sd_cols_as_dataframe")
 
 mean_sd_cols_as_dataframe.COYUs9Results<-function(char_results,
-                                         trial_years,
                                          varieties,
                                          field_name,
                                          col_name_template) {
+    trial_years = length(char_results$mean_sd_data)
+    
     column_names= c("AFP",
                     sapply(char_results$mean_sd_data,
                            function(x) {
@@ -73,7 +71,12 @@ mean_sd_cols_as_dataframe.COYUs9Results<-function(char_results,
                      nrow=length(varieties),
                      ncol=trial_years))
     )
-    
+
     colnames(ret)=column_names
+
+    ## Put factors back after they've been stripped out
+    if (is.factor(varieties)) {
+        ret$AFP = factor(levels(varieties)[ret$AFP])        
+    }
     return(ret)
 }

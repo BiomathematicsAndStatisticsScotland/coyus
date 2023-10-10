@@ -95,7 +95,6 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     candidate_summary=merge(
         merge(candidate_summary,
               mean_sd_cols_as_dataframe(char_results,
-                                        get_num_trial_years(coyu_parameters),
                                         coyu_parameters$candidates,
                                         "cand_mean",
                                         "Mean_%s"),
@@ -103,7 +102,6 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
               sort=FALSE,
               all.x=TRUE),
         mean_sd_cols_as_dataframe(char_results,
-                                  get_num_trial_years(coyu_parameters),
                                   coyu_parameters$candidates,
                                   "cand_logsd",
                                   "Log(SD+1)_%s"),
@@ -125,7 +123,6 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     reference_summary=merge(
         merge(reference_summary,
               mean_sd_cols_as_dataframe(char_results,
-                                        get_num_trial_years(coyu_parameters),
                                         coyu_parameters$reference,
                                         "ref_mean",
                                         "Mean_%s"),
@@ -133,7 +130,6 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
               sort=FALSE,
               all.x=TRUE),
         mean_sd_cols_as_dataframe(char_results,
-                                  get_num_trial_years(coyu_parameters),
                                   coyu_parameters$reference,
                                   "ref_logsd",
                                   "Log(SD+1)_%s"),
