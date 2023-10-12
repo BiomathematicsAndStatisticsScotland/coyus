@@ -103,9 +103,8 @@ readCoyu9File<-function(name) {
     data_file$output_file_prefix=normalizePath(
         sprintf("%s/%s",output_dir,paste("COYUs_",trial_id,"_",Sys.Date(),sep="")),
         mustWork=FALSE)
-    
-    data_file$candidate_csv_file=paste(data_file$output_file_prefix, "_candidate_data.csv", sep="")
-    data_file$reference_csv_file=paste(data_file$output_file_prefix, "_reference_data.csv", sep="")
+   
+    data_file$csv_file=paste(data_file$output_file_prefix, "_data.csv", sep="")
     
     data_file$prob_set_count=scan(con,what=integer(),n=1,quiet=TRUE)
     data_file$plot_options=scan(con,what=integer(),n=1,quiet=TRUE)

@@ -80,11 +80,8 @@ capture_warnings <- function() {
 
             if (data_input$plot_options >= 0) {
                 ## output candidate and reference varieties data in CSV form
-                results_df = COYU_results_as_dataframe(results[[1]], what="candidate")
-                write.csv(results_df,file=data_input$candidate_csv_file)
-
-                results_df_ref = COYU_results_as_dataframe(results[[1]], what="reference")
-                write.csv(results_df_ref,file=data_input$reference_csv_file)
+                results_df = COYU_results_as_dataframe(results[[1]])
+                write.csv(results_df,file=data_input$csv_file)
             }
               
           },
