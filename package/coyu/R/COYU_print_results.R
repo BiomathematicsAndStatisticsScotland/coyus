@@ -71,76 +71,39 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     alpha_names<-c("2_year_reject","2_year_accept")
   }
   
-  #UNIFORMITY ANALYSIS OF BETWEEN-PLANT STANDARD DEVIATIONS (SD)
+  ## UNIFORMITY ANALYSIS OF BETWEEN-PLANT STANDARD DEVIATIONS (SD)
   
-  # Over year summary
+  ## Over year summary
   yearly_summary<-apply(results,2,function(results_col) {
     
     char_results<-results_col[[first_dataset]]
 
-    summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD")
-
-    
-
-    candidate_summary<-as.data.frame(
-        cbind(char_results$candidates[,c("candidate_afp")],
-              strip_string_factor(char_results$candidate$candidate_varieties),
-              char_results$candidates[,c("extrapolation_factor",
-                                         "candidate_means",
-                                         "candidate_adjusted_logSD",
-                                         "candidate_actual_logSD")]
-              ))
-
-    colnames(candidate_summary)=summary_col_names
-    candidate_summary=merge(
-        merge(candidate_summary,
-              mean_sd_cols_as_dataframe(char_results,
-                                        coyu_parameters$candidates,
-                                        "cand_mean",
-                                        "Mean_%s"),
-              by=c("AFP"),
-              sort=FALSE,
-              all.x=TRUE),
-        mean_sd_cols_as_dataframe(char_results,
-                                  coyu_parameters$candidates,
-                                  "cand_logsd",
-                                  "Log(SD+1)_%s"),
-        by=c("AFP"),
-        sort=FALSE,
-        all.x=TRUE)
+    results_df = COYU_results_as_dataframe(char_results)
       
-    reference_summary<-as.data.frame(
-        cbind(char_results$reference[,c("reference_afp")],
-              strip_string_factor(char_results$reference$reference_varieties),
-              rep(NA, nrow(char_results$reference)),
-              char_results$reference[,c("reference_means",
-                                        "reference_adjusted_logSD",
-                                        "reference_actual_logSD")]     
-              ))                             
-        
-    colnames(reference_summary)=summary_col_names
+    yearly_col_names = get_yearly_col_names(results_df,
+                                            col_patterns=c(YEARLY_MEAN_PATTERN, YEARLY_LOGSD_PATTERN))
 
-    reference_summary=merge(
-        merge(reference_summary,
-              mean_sd_cols_as_dataframe(char_results,
-                                        coyu_parameters$reference,
-                                        "ref_mean",
-                                        "Mean_%s"),
-              by=c("AFP"),
-              sort=FALSE,
-              all.x=TRUE),
-        mean_sd_cols_as_dataframe(char_results,
-                                  coyu_parameters$reference,
-                                  "ref_logsd",
-                                  "Log(SD+1)_%s"),
-        by=c("AFP"),
-        sort=FALSE,
-        all.x=TRUE)
+      source_col_list = c("AFP", "variety", "extrapolation_factor",
+                        "mean", "adjusted_logSD", "actual_logSD",
+                        yearly_col_names)
+      
+    summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD",
+                         yearly_col_names)
+
+    candidate_summary<-results_df[ results_df$is_candidate==1,
+                                   source_col_list ]
+    candidate_summary$variety = strip_string_factor(candidate_summary$variety)    
+    colnames(candidate_summary)=summary_col_names
+
+    reference_summary <- results_df[ results_df$is_candidate==0,
+                                     source_col_list]
+    reference_summary$variety = strip_string_factor(reference_summary$variety)
+    colnames(reference_summary)=summary_col_names     
 
     #Remove irrelevant columns before computing means
     reference_means <- colMeans(reference_summary[,c(-1,-2,-3)], na.rm=TRUE)
     
-    ## TODO: this could potentially be simplified by using results variable candidate_not_uniform
+    ##This could potentially be simplified by using results variable candidate_not_uniform
     sd_symbols<-mapply(function(value,thresholds) {
       if (is.na(value)) {
         return("");
@@ -182,7 +145,8 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
                                        return (c(""))
                                    })
       
-    #TODO: ideally we'd indicate which years were extrapolated too but this data is not exposed yet
+    ## TODO: ideally we'd indicate which years were extrapolated too -
+    ## the data is in COYUS9CharacterResultsDF dataframes      
     candidate_symbols <- data.frame(AFP=candidate_summary$AFP,
                                     Variety=c(""),
                                     Extrapolation=c(""),
