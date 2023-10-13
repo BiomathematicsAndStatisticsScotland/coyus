@@ -110,7 +110,7 @@ first_dataset.COYUs9Parameters<-function(coyu_obj) {
 }
 
 #'@export
-first_dataset.COYUs9Results<-first_dataset.COYUs9Parameters
+first_dataset.COYUs9CharacterResults<-first_dataset.COYUs9Parameters
 
 #'@export
 first_dataset.COYUs9AllResults<-first_dataset.COYUs9Parameters
@@ -135,7 +135,7 @@ dataset_names.COYUs9Parameters<-function(coyu_obj) {
 }
 
 #'@export
-dataset_names.COYUs9Results<-dataset_names.COYUs9Parameters
+dataset_names.COYUs9CharacterResults<-dataset_names.COYUs9Parameters
 
 #'@export
 dataset_names.COYUs9AllResults<-dataset_names.COYUs9Parameters

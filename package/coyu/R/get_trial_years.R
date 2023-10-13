@@ -56,7 +56,7 @@ get_trial_years.COYUs9TrialData<-function(coyu_obj) {
 }
 
 #' @export
-get_trial_years.COYUs9Results<-function(coyu_obj) {
+get_trial_years.COYUs9CharacterResults<-function(coyu_obj) {
     return (levels(coyu_obj$yearly_results[[1]]$ref_results$year))
 }
 
@@ -71,6 +71,6 @@ get_num_trial_years.COYUs9Parameters<-function(coyu_obj) {
 }
 
 #' @export
-get_num_trial_years.COYUs9Results <- function(coyu_obj) {
+get_num_trial_years.COYUs9CharacterResults <- function(coyu_obj) {
     return( length(coyu_obj$yearly_results) )
 }

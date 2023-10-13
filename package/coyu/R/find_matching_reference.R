@@ -79,14 +79,14 @@ find_matching_reference.COYUs9AllResults<-function(results,
 
 #' reference_sd_exceed_threshold
 #'
-#' @param char_results COYUs9Results object to analyse
+#' @param char_results COYUs9CharacterResults object to analyse
 #' @param ... Extra parameter, which should be a single numeric threshold usually taken from a  decision ruleset.
 #' @return All reference varieties in a particular results set where the adjusted logSD exceeds the threshold
 #' @export
 reference_sd_exceed_threshold <- function(char_results, ...) UseMethod("reference_sd_exceed_threshold")
 
 #' @export
-reference_sd_exceed_threshold.COYUs9Results<-function(char_results, ...) {
+reference_sd_exceed_threshold.COYUs9CharacterResults<-function(char_results, ...) {
   if (missing(...)) {
     stop("This function should be passed a threshold via the additional arguments to find_matching_reference")
   }

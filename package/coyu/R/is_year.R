@@ -49,12 +49,12 @@ is_2_year<-function(coyu_obj) {
 }
 
 #'@export
-is_2_year.COYUs9Results<-function(coyu_obj) {
+is_2_year.COYUs9CharacterResults<-function(coyu_obj) {
   return(length(coyu_obj$yearly_results) == 2)
 }
 
 #'@export
-is_3_year.COYUs9Results<-function(coyu_obj) {
+is_3_year.COYUs9CharacterResults<-function(coyu_obj) {
   return(length(coyu_obj$yearly_results) == 3)
 }
 

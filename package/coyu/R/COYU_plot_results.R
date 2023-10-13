@@ -37,7 +37,7 @@
 #' There are plots for each year and character. The plots can be used to assist decisions when there is extrapolation 
 #' (i.e. candidate outside range of expression of reference varieties).
 #' 
-#' @param results COYUs9Results object containing the data to plot
+#' @param results COYUs9CharacterResults object containing the data to plot
 #' @param character_key Mapping of character number to name. This can be the character_key in the COYUs9TrialData object and can be subsetted as required
 #' @param plot_options Control plot options. If plot_options==2, a new page/device will be started for each plot. Other values will lead to the default behaviour. 
 #' @param plot_file File name to plot to. If NULL, current graphics device is used.
@@ -113,10 +113,14 @@ COYU_plot_results.COYUs9AllResults<-function(results,
 #'
 #' Plot a single results object to the current graphics device
 #'
-#' @param char_result COYUs9Results object to plot
+#' @param char_result COYUs9CharacterResults object to plot
 #' @param character_name Optional name for the plot title
-#' @param candidates The candidate varieties to plot, by AFP number. If value is "ALL" (default), all candidates are plotted. Any candidates not included here will be omitted from the plots 
-#' @param plot_options Controls plotting. If plot_options==2, a new page will be started for each plot
+#' @param candidates The candidate varieties to plot, by AFP
+#'     number. If value is "ALL" (default), all candidates are
+#'     plotted. Any candidates not included here will be omitted from
+#'     the plots
+#' @param plot_options Controls plotting. If plot_options==2, a new
+#'     page will be started for each plot
 #'@export
 COYU_plot_single_character <- function(char_result,
                                        character_name,
@@ -124,10 +128,10 @@ COYU_plot_single_character <- function(char_result,
                                        plot_options=1) UseMethod("COYU_plot_single_character")
 
 #'@export
-COYU_plot_single_character.COYUs9Results <- function(char_result,
-                                                     character_name,
-                                                     candidates="ALL",
-                                                     plot_options=1) {
+COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
+                                                              character_name,
+                                                              candidates="ALL",
+                                                              plot_options=1) {
   
   if (missing(character_name)) {
     character_name <- sprintf("%d",char_result$character_number)

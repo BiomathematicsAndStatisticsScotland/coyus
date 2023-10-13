@@ -92,8 +92,8 @@ COYU_results_as_dataframe.COYUs9AllResults <- function(results,
 }
 
 #'@export
-COYU_results_as_dataframe.COYUs9Results <- function(char_results,
-                                                    alpha_name=first_dataset(results)) {
+COYU_results_as_dataframe.COYUs9CharacterResults <- function(char_results,
+                                                             alpha_name=first_dataset(results)) {
 
     ref_target_columns=c("reference_varieties","reference_afp",
                          "reference_means","reference_actual_logSD","reference_adjusted_logSD")

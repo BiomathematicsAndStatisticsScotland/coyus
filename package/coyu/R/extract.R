@@ -51,7 +51,7 @@ extract_varieties.COYUs9TrialData <-function(trial_data) {
   return(unique(strip_numeric_factor(trial_data$AFP)))
 }
 
-extract_varieties.COYUs9Results <-function(trial_data) {
+extract_varieties.COYUs9CharacterResults <-function(trial_data) {
   return(unique(c(strip_numeric_factor(trial_data$reference[["reference_afp"]]),
                   strip_numeric_factor(trial_data$candidates[["candidate_afp"]])))
          )
@@ -73,7 +73,7 @@ extract_candidate_afp.COYUs9AllResults <- function(trial_data) {
   return(strip_numeric_factor(trial_data[[first_dataset(trial_data),1]]$candidates[["candidate_afp"]]))
 }
 
-extract_candidate_afp.COYUs9Results <- function(trial_data) {
+extract_candidate_afp.COYUs9CharacterResults <- function(trial_data) {
   return(strip_numeric_factor(trial_data$candidates[["candidate_afp"]]))
 }
 
@@ -81,7 +81,7 @@ extract_reference_afp.COYUs9AllResults <- function(trial_data) {
   return(strip_numeric_factor(trial_data[[first_dataset(trial_data),1]]$reference[["reference_afp"]]))         
 }
 
-extract_reference_afp.COYUs9Results <- function(trial_data) {
+extract_reference_afp.COYUs9CharacterResults <- function(trial_data) {
   return(strip_numeric_factor(trial_data$reference[["reference_afp"]]))
 }
 
@@ -89,7 +89,7 @@ extract_candidate_names.COYUs9AllResults<- function(trial_data) {
   return(strip_string_factor(trial_data[[first_dataset(trial_data),1]]$candidates[["candidate_varieties"]]))
 }
 
-extract_candidate_names.COYUs9Results<- function(trial_data) {
+extract_candidate_names.COYUs9CharacterResults<- function(trial_data) {
   return(strip_string_factor(trial_data$candidates[["candidate_varieties"]]))
 }
 
@@ -97,7 +97,7 @@ extract_reference_names.COYUs9AllResults<- function(trial_data) {
   return(strip_string_factor(trial_data[[first_dataset(trial_data),1]]$reference[["reference_varieties"]]))
 }
 
-extract_reference_names.COYUs9Results<- function(trial_data) {
+extract_reference_names.COYUs9CharacterResults<- function(trial_data) {
   return(strip_string_factor(trial_data$reference[["reference_varieties"]]))
 }
 

@@ -36,7 +36,19 @@
 #' @param character_number Number of the character we're working on
 #' @param dat.ref  Reference data, in form documented in COYU_data_skeleton for COYUs9TrialData
 #' @param dat.cand Candidate data, in form documented in COYU_data_skeleton for COYUs9TrialData
-#' @return Named list with class "COYUs9Results". Format is not yet stable so is not documented
+#' @return Named list with class "COYUs9CharacterResults". Format is as follows:
+#' 
+#'  character_number       Single value containing the character number for this result set
+#'  grand_mean             The mean of all reference varieties logSD across all years
+#'  spline_df              Degrees of freedom of the reference variety spline used in
+#'                         the yearly results, across all years.
+#'  reference_mean_logSD   LogSD value for all reference varieties adjusted using the residual
+#'                         degrees of freedom
+#'  yearly_results         List of length N where N is the number of years in the trial
+#'                         containing yearly COYU results for this character
+#'  anova                  Dataframe of the ANOVA data from each year in the trial
+#'  reference              Overall reference variety results. Dataframe.
+#'  candidates             Overall candidate variety results. Dataframe. 
 #' 
 #' @import lme4
 #' @import Matrix
@@ -102,8 +114,8 @@ COYU_single_character<-function(character_number,
     stop(paste("Number of candidates is not the same between years", n.cand, n.cand2))
   }   
 
-  #have to create extrapolation_detect this way as aggregate returns an
-  #annoying nested data structure when returning multiple values  
+  ## have to create extrapolation_detect this way as aggregate returns an
+  ## annoying nested data structure when returning multiple values  
   extrapolation_detect <- merge(dat.cand,
                                 data.frame(year=levels(dat.cand$year),
                                            aggregate(mn~year,
@@ -112,18 +124,17 @@ COYU_single_character<-function(character_number,
                                                        c(MIN=min(x), MAX=max(x)) })$mn)
                                 )
 
-  #TODO: At some point we should return this information to the end user in this by-year form
+  ## Extrapolation results - yearly values are provided in the
+  ## yearly_results list as variable extrapolation_factor
   extrapolation_detect$extrapolation <- as.numeric(extrapolation_detect$mn < extrapolation_detect$MIN |
                                                    extrapolation_detect$mn > extrapolation_detect$MAX)
     
   ## send data off to spline and linear fit  
   yearly_results<-lapply(1:n.yr, COYU_single_year, dat.ref=dat.ref, dat.cand=dat.cand)
-  class(yearly_results)<-append(class(yearly_results), "COYUs9YearlyResults")
+  class(yearly_results)<-append(class(yearly_results), "COYUs9YearlyResults")   
     
-  ## TODO: grab extrapolation_factor and add to extrapolation_detect data structure and return it
-    
-  # output in yearly_results is a matrix 6 sets of info x n.yr years
-  # Dataframe format is documented in COYU_single_year.R
+  ## output in yearly_results is a matrix 6 sets of info x n.yr years
+  ## Dataframe format is documented in COYU_single_year.R
   merged_ref_results<-merge(dat.ref, do.call("rbind",
                                              extract_yearly_result(yearly_results, "ref_results")))
     
@@ -155,14 +166,10 @@ COYU_single_character<-function(character_number,
   resid.var.spline<-(vcanal.vc+vcanal.sig2)*(nobs-n.yr)/res.df.spline #CHANGE   
   mn.adj.logSD.ref.spl<-sum(c(n.yr,rep(1,(n.yr-1)))*fixef(vcanal))/n.yr # CHANGE 
 
-  # now to work out means for candidates - for now only using AFP as
-  #aggregation variable as variety names are not consistent across
-  #years. Could make them consistent if desired
-
-  ##OLD VERSION
-  ##cand_means <- aggregate(cbind(mn,logSD,adjusted_logSD,regression_factor,extrapolation_factor)~AFP, merged_cand_results, mean, na.action=na.pass)
-
-  ##NEW VERSION  
+  ## now to work out means for candidates - for now only using AFP as
+  ## aggregation variable as variety names are not necessarily
+  ## consistent across years. Could make them consistent if desired
+    
   ##Extract candidate means and max extrapolation factors for each candicate
   cand_means1 = aggregate(cbind(mn,logSD,adjusted_logSD,regression_factor)~AFP,
                          merged_cand_results, mean, na.action=na.pass)
@@ -188,7 +195,7 @@ COYU_single_character<-function(character_number,
                                   row.names=c("Sum of squares", "Effective degrees of freedom"))
   colnames(anova_data)<-yr   
 
-  #Dealing with unbalanced data and missing values
+  ## Dealing with unbalanced data and missing values
   ind1<-which(with(merged_ref_results, aggregate(!is.na(mn),list(AFP),sum)$x==0))
   ind2<-which(with(merged_ref_results, aggregate(!is.na(logSD),list(AFP),sum)$x==0))
   ind3<-which(with(merged_ref_results, aggregate(!is.na(adjusted_logSD),list(AFP),sum)$x==0))
@@ -196,7 +203,7 @@ COYU_single_character<-function(character_number,
   reference_predictions <- function(model,missing_data_index,col_name="predictions") {
     results<-numeric(length=n.ref)
 
-    #Uses predict.merMod
+    ## Uses predict.merMod
     if (length(missing_data_index)==0) {
       results<-predict(lmer(model,
                             REML=TRUE,
@@ -232,7 +239,7 @@ COYU_single_character<-function(character_number,
   mn2<-reference_predictions(logSD~(1|year)+AFP,ind2,"reference_actual_logSD")
   mn3<-reference_predictions(adjusted_logSD~(1|year)+AFP,ind3,"reference_adjusted_logSD")
 
-  #Assemble reference results
+  ## Assemble reference results
   final_ref_results<-merge(merge(mn1,mn2,
                                  by=c("reference_afp")),
                            mn3,
@@ -249,7 +256,7 @@ COYU_single_character<-function(character_number,
   results$reference=final_ref_results
 
   
-  #Assemble candidate results and set names to something "friendly", order columns sensibly
+  ## Assemble candidate results and set names to something "friendly", order columns sensibly
   final_cand_results <- merge(cand_means,aggregate(extrapolation~AFP,extrapolation_detect,max))
     
   names(final_cand_results)<-c("candidate_afp", "candidate_means", "candidate_actual_logSD",
@@ -262,7 +269,6 @@ COYU_single_character<-function(character_number,
                                             "candidate_prediction_err", "candidate_COYU_pvalue",
                                             "extrapolation", "extrapolation_factor")]
 
-  ## TODO: rename COYUs9Results to COYUs9CharacterResults for greater clarity
-  class(results)<-c("COYUs9Results","list")
+  class(results)<-c("COYUs9CharacterResults","list")
   return(results)
 }
