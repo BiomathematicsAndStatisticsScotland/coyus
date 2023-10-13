@@ -40,7 +40,7 @@
 #' @export                                        
 get_trial_years<-function(coyu_obj) UseMethod("get_trial_years")
 
-#' get_trial_years
+#' get_num_trial_years
 #'
 #' Convenience method to retrieve the number of trial years from various COYU object
 #' 
@@ -56,6 +56,11 @@ get_trial_years.COYUs9TrialData<-function(coyu_obj) {
 }
 
 #' @export
+get_trial_years.COYUs9Results<-function(coyu_obj) {
+    return (levels(coyu_obj$yearly_results[[1]]$ref_results$year))
+}
+
+#' @export
 get_num_trial_years.COYUs9TrialData<-function(coyu_obj) {
   nlevels(coyu_obj$year)
 }
@@ -63,4 +68,9 @@ get_num_trial_years.COYUs9TrialData<-function(coyu_obj) {
 #' @export
 get_num_trial_years.COYUs9Parameters<-function(coyu_obj) {
   return(coyu_obj$num_trial_years)
+}
+
+#' @export
+get_num_trial_years.COYUs9Results <- function(coyu_obj) {
+    return( length(coyu_obj$yearly_results) )
 }

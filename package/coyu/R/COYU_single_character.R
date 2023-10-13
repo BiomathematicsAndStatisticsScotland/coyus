@@ -116,13 +116,19 @@ COYU_single_character<-function(character_number,
   extrapolation_detect$extrapolation <- as.numeric(extrapolation_detect$mn < extrapolation_detect$MIN |
                                                    extrapolation_detect$mn > extrapolation_detect$MAX)
     
-  # send data off to spline and linear fit  
-  yearly_results<-sapply(1:n.yr, COYU_single_year, dat.ref=dat.ref, dat.cand=dat.cand)
-  
+  ## send data off to spline and linear fit  
+  yearly_results<-lapply(1:n.yr, COYU_single_year, dat.ref=dat.ref, dat.cand=dat.cand)
+  class(yearly_results)<-append(class(yearly_results), "COYUs9YearlyResults")
+    
+  ## TODO: grab extrapolation_factor and add to extrapolation_detect data structure and return it
+    
   # output in yearly_results is a matrix 6 sets of info x n.yr years
   # Dataframe format is documented in COYU_single_year.R
-  merged_ref_results<-merge(dat.ref, do.call("rbind", yearly_results["ref_results",1:n.yr]))
-  merged_cand_results<-merge(dat.cand, do.call("rbind", yearly_results["cand_results",1:n.yr]))
+  merged_ref_results<-merge(dat.ref, do.call("rbind",
+                                             extract_yearly_result(yearly_results, "ref_results")))
+    
+  merged_cand_results<-merge(dat.cand, do.call("rbind",
+                                               extract_yearly_result(yearly_results, "cand_results")))
   
   ## Note: problems with visibility of dat.ref in lmer() call, hence
   ## pulled out into separate variables
@@ -141,8 +147,11 @@ COYU_single_character<-function(character_number,
   
 
   # calculate dfs, MSEs and SEs
-  eff.df.spline<-as.numeric(as.data.frame((yearly_results["eff_df_spline", 1:n.yr])))
-  res.df.spline<- nobs -sum(eff.df.spline)
+  eff.df.spline<-as.numeric(
+      as.data.frame(extract_yearly_result(yearly_results,"eff_df_spline"))
+  )
+  
+  res.df.spline<- nobs - sum(eff.df.spline)
   resid.var.spline<-(vcanal.vc+vcanal.sig2)*(nobs-n.yr)/res.df.spline #CHANGE   
   mn.adj.logSD.ref.spl<-sum(c(n.yr,rep(1,(n.yr-1)))*fixef(vcanal))/n.yr # CHANGE 
 
@@ -174,8 +183,8 @@ COYU_single_character<-function(character_number,
     (cand_means$adjusted_logSD-mn.adj.logSD.ref.spl)/cand_means$SE_cand_one_spl_Wah,
     df=res.df.spline)
   
-  anova_data<-as.data.frame(rbind(as.numeric(yearly_results["sum_sqrs", 1:n.yr]),
-                                  as.numeric((yearly_results["eff_df_spline", 1:n.yr]))),
+  anova_data<-as.data.frame(rbind(as.numeric( extract_yearly_result(yearly_results, "sum_sqrs")),
+                                  eff.df.spline),
                                   row.names=c("Sum of squares", "Effective degrees of freedom"))
   colnames(anova_data)<-yr   
 
@@ -232,10 +241,10 @@ COYU_single_character<-function(character_number,
      
   results<-list()
   results$character_number=character_number
-  results$grand_mean=rowMeans(as.data.frame(yearly_results["grand_mean",1:n.yr]))
+  results$grand_mean=rowMeans(as.data.frame(extract_yearly_result(yearly_results, "grand_mean")))
   results$spline_df=res.df.spline
   results$reference_mean_logSD=mn.adj.logSD.ref.spl
-  results$mean_sd_data=yearly_results["mean_sd_data",1:n.yr]
+  results$yearly_results=yearly_results
   results$anova=anova_data
   results$reference=final_ref_results
 
@@ -252,7 +261,8 @@ COYU_single_character<-function(character_number,
                                             "candidate_actual_logSD", "candidate_adjusted_logSD",
                                             "candidate_prediction_err", "candidate_COYU_pvalue",
                                             "extrapolation", "extrapolation_factor")]
-  
-  class(results)<-c("COYUs9Results",list)
+
+  ## TODO: rename COYUs9Results to COYUs9CharacterResults for greater clarity
+  class(results)<-c("COYUs9Results","list")
   return(results)
 }

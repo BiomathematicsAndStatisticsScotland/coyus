@@ -35,10 +35,14 @@
 #' Transform a COYU results object into a useful dataframe format. 
 #'
 #' @param results COYUs9AllResults object
-#' @param alpha_name Optional. Name of the dataset to transform (e.g. "2_year_reject"). If not provided first_dataset will be used to find a dataset.
-#' @param what Optional. Whether to provide "candidate" or "reference" data. Default "candidate"
+#' @param alpha_name Optional. Name of the dataset to transform
+#'     (e.g. "2_year_reject"). If not provided first_dataset will be
+#'     used to find a dataset.
+#' @param what Optional. Whether to provide "candidate" or "reference"
+#'     data. Default "candidate"
 #' @return data frame containing the results of interest
 #' @examples
+#' 
 #' ## an example using the test_2_year example included in the COYU package
 #' 
 #' data(test_2_year,package="coyu") 
@@ -64,84 +68,138 @@
 #'
 #' @export                                        
 COYU_results_as_dataframe <- function(results,
-                                      alpha_name=first_dataset(results),
-                                      what = c("candidate")) {
+                                      alpha_name=first_dataset(results)) {
   UseMethod("COYU_results_as_dataframe")
 }
 
-#'@export
-COYU_results_as_dataframe.COYUs9AllResults<-function(results,
-                                                     alpha_name=first_dataset(results),
-                                                     what="candidate") {
-  
-  
-  if (what=="candidate") {
-      target_columns=c("candidate_varieties","candidate_afp",
-                       "extrapolation","extrapolation_factor",
-                       "candidate_means","candidate_actual_logSD","candidate_adjusted_logSD",
-                       "candidate_COYU_pvalue","candidate_prediction_err","candidate_coyu_threshold",
-                       "candidate_not_uniform")
-      afp_col="candidate_afp"
-      mean_col="cand_mean"
-      logsd_col="cand_logsd"
-      adj_logsd_col="cand_adjlogsd"
-      variety_col="candidate_varieties"      
-  } else if (what=="reference") {
-      target_columns=c("reference_varieties","reference_afp",
-                       "reference_means","reference_actual_logSD","reference_adjusted_logSD")
-      afp_col="reference_afp"
-      mean_col="ref_mean"
-      logsd_col="ref_logsd"
-      adj_logsd_col="ref_adjlogsd"
-      variety_col="reference_varieties"
-  } else {
-      ## TODO: add "combined" option which will emit a single dataframe with a "is_candidate" column
-      stop("Invalid value for parameter 'what'=%s. Valid values are c('candidate','reference')",
-           what)
-  }
 
-  ## Select results we're interested in
-  output_results<-as.matrix(results[c("character",alpha_name), ])
-  rownames(output_results)<-c("character","result")    
-  
-  ret=do.call(rbind,
-              apply(output_results,2,function(x) {
+#' @export
+COYU_results_as_dataframe.COYUs9AllResults <- function(results,
+                                                       alpha_name=first_dataset(results)) {
 
-                  if (what=="candidate") {                
-                      varieties =x$result$candidates
-                  } else {
-                      varieties = x$result$reference
-                  }
+    output_results<-as.matrix(results[c("character",alpha_name), ])
+    rownames(output_results)<-c("character","result")
+        
+    ret=do.call(rbind,
+                apply(output_results,2,function(x) {
+                    char_results = COYU_results_as_dataframe(x$result, alpha_name)
+                    characters=data.frame(character_number=rep(x$character, nrow(char_results)))
+                    return (cbind(characters,char_results))                                          
+                }))
 
-                  mean_data = mean_sd_cols_as_dataframe(x$result,
-                                                        varieties[,afp_col],
-                                                        mean_col,
-                                                        "Mean_%s")
-                  sd_data = mean_sd_cols_as_dataframe(x$result,
-                                                      varieties[,afp_col],
-                                                      logsd_col,
-                                                      "Log(SD+1)_%s")
-                  adj_logsd_data = mean_sd_cols_as_dataframe(x$result,
-                                                             varieties[,afp_col],
-                                                             adj_logsd_col,
-                                                             "AdjLog(SD+1)_%s")
-                  
-                  characters<-data.frame(character_number=rep(x$character,nrow(varieties)))
-
-                  ret2 = cbind(characters, varieties[,target_columns])
-
-                  merge(
-                      ret2,
-                      merge(mean_data,
-                            merge(sd_data,
-                                  adj_logsd_data,
-                                  by=c("AFP")),
-                            by=c("AFP")),
-                      by.x=afp_col,
-                      by.y=c("AFP"))
-              }))
-
-    return(ret)
+    
+    return (ret)                   
 }
 
+#'@export
+COYU_results_as_dataframe.COYUs9Results <- function(char_results,
+                                                    alpha_name=first_dataset(results)) {
 
+    ref_target_columns=c("reference_varieties","reference_afp",
+                         "reference_means","reference_actual_logSD","reference_adjusted_logSD")
+
+    ref_rename_columns=c("variety","AFP",
+                         "mean","actual_logSD","adjusted_logSD")
+
+    cand_target_columns=c("candidate_varieties","candidate_afp",
+                          "extrapolation","extrapolation_factor",
+                          "candidate_means","candidate_actual_logSD","candidate_adjusted_logSD",
+                          "candidate_COYU_pvalue",
+                          "candidate_prediction_err",
+                          "candidate_coyu_threshold",
+                          "candidate_not_uniform")
+    
+    cand_rename_columns=c("variety","AFP",
+                          "extrapolation","extrapolation_factor",
+                          "mean","actual_logSD","adjusted_logSD",
+                          "candidate_COYU_pvalue",
+                          "candidate_prediction_err",
+                          "candidate_coyu_threshold",
+                          "candidate_not_uniform")
+    
+    overall_data <- function(variety_data, col_list, col_renaming) {     
+        overall = variety_data[, col_list ]
+        colnames(overall) = col_renaming
+        return(overall)
+    }
+                             
+    yearly_data <- function(extracted_result, col_list, output_col_template) {
+        Reduce(
+            function (a, b) {
+                merge(a,b, by=c("AFP"), all=TRUE)
+            },
+            lapply(
+               extracted_result,
+               function (yrly) {
+                   yrly_ret = yrly[, col_list]
+                   colnames(yrly_ret)=sprintf(output_col_template, as.character(yrly$year[1]))
+                   return (yrly_ret)
+               })
+        )
+    }
+
+    ref_overall = cbind(
+        data.frame(is_candidate=rep(0, nrow(char_results$reference))),
+        overall_data(char_results$reference,
+                     ref_target_columns,
+                     ref_rename_columns)
+    )
+    
+    cand_overall = cbind(
+        data.frame(is_candidate=rep(1, nrow(char_results$candidate))),
+        overall_data(char_results$candidate,
+                     cand_target_columns,
+                     cand_rename_columns)
+    )
+
+    ## Note: if you change the column names here, remember to update
+    ## the re-ordering patterns at the end of this function
+    ref_yearly = yearly_data(
+        extract_yearly_result(char_results$yearly_results,"ref_results"),
+        c("AFP","mn","logSD","adjusted_logSD"),
+        c("AFP","Mean_%s", "Log(SD+1)_%s", "AdjLog(SD+1)_%s"))
+
+    cand_yearly = yearly_data(
+        extract_yearly_result(char_results$yearly_results,"cand_results"),
+        c("AFP","mn","logSD","adjusted_logSD", "extrapolation_factor"),
+        c("AFP","Mean_%s", "Log(SD+1)_%s", "AdjLog(SD+1)_%s", "Extrapolation_%s")
+    )
+    
+    cand_flattened = merge(
+        cand_overall,
+        cand_yearly,
+        by=c("AFP"),
+        all=TRUE)
+                    
+    ref_flattened = merge(
+        ref_overall,
+        ref_yearly,
+        by=c("AFP"),
+        all=TRUE)
+    
+    ## Add extra columns to flattened reference data filled with NA
+    extra_cols = setdiff(colnames(cand_flattened), colnames(ref_flattened))
+    ref_flattened = cbind(
+        ref_flattened,
+        data.frame(
+            matrix(nrow=nrow(ref_flattened),
+                   ncol=length(extra_cols),
+                   dimnames=list(NULL,extra_cols))
+        )
+    )
+                        
+    all_data=rbind(cand_flattened,
+                   ref_flattened)
+    
+    ## Reorder the column names to meet requirements
+    col_indexes=as.vector(
+        sapply(c("^Extrapolation_","^Mean_", "^Log.SD.1._", "^AdjLog.SD.1._"),
+               function (pattern) grep(pattern, names(all_data))
+               ))
+    
+    new_order = append(setdiff(names(all_data),
+                               names(all_data)[col_indexes]),
+                       reordered_yearly)
+    
+    return (all_data[,new_order])
+}

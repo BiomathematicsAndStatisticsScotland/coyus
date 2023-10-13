@@ -136,3 +136,13 @@ extract_field.COYUs9AllResults <- function(results,extractor,dataset_name,row_na
   }
   return(extracted)
 }
+
+
+#' @export
+extract_yearly_result <- function(yearly_results, result_field) UseMethod("extract_yearly_result")
+
+#' @export
+extract_yearly_result.COYUs9YearlyResults<-function(yearly_results, result_field) {
+    all_results=lapply(yearly_results, function (x) { return (x[[result_field]]) })
+    return (all_results)
+}
