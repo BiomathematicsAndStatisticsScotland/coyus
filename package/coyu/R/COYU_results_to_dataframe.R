@@ -87,7 +87,7 @@ COYU_results_as_dataframe.COYUs9AllResults <- function(results,
                     return (cbind(characters,char_results))                                          
                 }))
 
-    
+    class(ret) = append(class(ret), "COYUs9AllResultsDF")
     return (ret)                   
 }
 
@@ -154,15 +154,21 @@ COYU_results_as_dataframe.COYUs9CharacterResults <- function(char_results,
 
     ## Note: if you change the column names here, remember to update
     ## the re-ordering patterns at the end of this function
+
+    ref_yearly_patterns = c("Mean_%s", "Log(SD+1)_%s", "AdjLog(SD+1)_%s")    
+    cand_yearly_patterns = c("Extrapolation_%s", "Mean_%s", "Log(SD+1)_%s", "AdjLog(SD+1)_%s")
+    reordered_yearly = sapply(cand_yearly_patterns,
+                              function (pattern) sprintf(pattern, get_trial_years(char_results)))
+    
     ref_yearly = yearly_data(
         extract_yearly_result(char_results$yearly_results,"ref_results"),
         c("AFP","mn","logSD","adjusted_logSD"),
-        c("AFP","Mean_%s", "Log(SD+1)_%s", "AdjLog(SD+1)_%s"))
+        c("AFP",ref_yearly_patterns))
 
     cand_yearly = yearly_data(
         extract_yearly_result(char_results$yearly_results,"cand_results"),
         c("AFP","mn","logSD","adjusted_logSD", "extrapolation_factor"),
-        c("AFP","Mean_%s", "Log(SD+1)_%s", "AdjLog(SD+1)_%s", "Extrapolation_%s")
+        c("AFP",cand_yearly_patterns)
     )
     
     cand_flattened = merge(
@@ -189,17 +195,16 @@ COYU_results_as_dataframe.COYUs9CharacterResults <- function(char_results,
     )
                         
     all_data=rbind(cand_flattened,
-                   ref_flattened)
-    
-    ## Reorder the column names to meet requirements
-    col_indexes=as.vector(
-        sapply(c("^Extrapolation_","^Mean_", "^Log.SD.1._", "^AdjLog.SD.1._"),
-               function (pattern) grep(pattern, names(all_data))
-               ))
-    
+                   ref_flattened)      
+
+    yearly_cols = get_yearly_col_names.COYUs9CharResultsDF(all_data)
     new_order = append(setdiff(names(all_data),
-                               names(all_data)[col_indexes]),
+                               yearly_cols),
                        reordered_yearly)
-    
-    return (all_data[,new_order])
+
+    results_df = all_data[,new_order]
+    class(results_df) = append(class(results_df), "COYUs9CharResultsDF")
+    return (results_df)
 }
+
+

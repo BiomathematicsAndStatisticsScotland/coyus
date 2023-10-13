@@ -140,3 +140,43 @@ dataset_names.COYUs9CharacterResults<-dataset_names.COYUs9Parameters
 #'@export
 dataset_names.COYUs9AllResults<-dataset_names.COYUs9Parameters
 
+
+### FUNCTIONS FOR WORKING WITH DATAFRAME COLUMNS
+YEARLY_EXTRAPOLATION_PATTERN="^Extrapolation_"
+YEARLY_MEAN_PATTERN="^Mean_"
+YEARLY_LOGSD_PATTERN="^Log.SD.1._"
+YEARLY_ADJLOGSD_PATTERN="^AdjLog.SD.1._"
+
+YEARLY_COLUMN_PATTERNS=c(YEARLY_EXTRAPOLATION_PATTERN,YEARLY_MEAN_PATTERN,
+                         YEARLY_LOGSD_PATTERN, YEARLY_ADJLOGSD_PATTERN)
+
+get_col_indexes_matching<-function(results_df, col_patterns) {
+    return (as.vector(
+        unlist(sapply(col_patterns, function (pattern) grep(pattern, names(results_df)), USE.NAMES=FALSE)),
+        mode="integer"
+    ))
+}
+
+#' get_col_names_matching
+#' Match columns in a dataframe according to col_patterns and return their names
+#' @param results_df Dataframe to analyse
+#' @param col_patterns Column patterns to match against the names in results_df
+#' @return the matching column names
+get_col_names_matching<-function(results_df, col_patterns) {
+    col_indexes = get_col_indexes_matching(results_df, col_patterns)
+    return (names(results_df)[col_indexes])    
+}
+
+get_yearly_col_names <- function(results_df, col_patterns=YEARLY_COLUMN_PATTERNS) UseMethod("get_yearly_col_names")
+
+get_yearly_col_names.COYUs9CharResultsDF<-function(results_df, col_patterns=YEARLY_COLUMN_PATTERNS) {
+    return (get_col_names_matching(results_df, col_patterns))
+}
+
+get_yearly_col_names.COYUs9AllResultsDF<-function(results_df, col_patterns=YEARLY_COLUMN_PATTERNS) {
+    return (get_col_names_matching(results_df, col_patterns))
+}
+
+get_yearly_col_names.data.frame<-function(results_df, col_patterns=YEARLY_COLUMN_PATTERNS) {
+    return (get_col_names_matching(results_df, col_patterns))
+}
