@@ -138,6 +138,14 @@ extract_field.COYUs9AllResults <- function(results,extractor,dataset_name,row_na
 }
 
 
+#' extract_yearly_result
+#'
+#' Extract an individual field from all years of the yearly results object.
+#'
+#' @param yearly_results An object of class COYUs9YearlyResults
+#' @param result_field The name of the result field to extract
+#' @return the extracted results
+#' 
 #' @export
 extract_yearly_result <- function(yearly_results, result_field) UseMethod("extract_yearly_result")
 

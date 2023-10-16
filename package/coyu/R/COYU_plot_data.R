@@ -19,9 +19,11 @@
 #'       cand_mean     Candidate mean values for this year, in AFP order
 #'       cand_logsd    Candidate SD values for this year, in AFP order
 #'       cand_adjlogsd Adjusted reference SD values for this year, in AFP order
+#' 
 #' @export
 COYU_yearly_plot_data<-function(single_year_result) UseMethod("COYU_yearly_plot_data")
 
+#' @export
 COYU_yearly_plot_data.COYUs9SingleYearResult<-function(single_year_result) {    
     ref_mean <- single_year_result$ref_results$mn
     ref_sd <- single_year_result$ref_results$logSD

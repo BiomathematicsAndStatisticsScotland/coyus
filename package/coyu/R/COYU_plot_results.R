@@ -67,8 +67,9 @@
 #' ## results sent to a pdf file. 
 #'
 #' @export
+#' @importFrom stats lm
 #' @importFrom grDevices dev.off pdf
-#' @importFrom graphics plot lines points plot.new title par
+#' @importFrom graphics plot lines points plot.new title par text
 COYU_plot_results <- function(results,
                               character_key,
                               plot_options=1,
@@ -209,8 +210,8 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
     data_above = data.frame(x_line= tail(year_result$x_line, points_to_fit),
                             y_line= tail(year_result$y_line, points_to_fit))
 
-    lm_below = lm(y_line ~ x_line, data=data_below)
-    lm_above = lm(y_line ~ x_line, data=data_above)    
+    lm_below = stats::lm(y_line ~ x_line, data=data_below)
+    lm_above = stats::lm(y_line ~ x_line, data=data_above)    
     
     ## Calculate the extension line with y=mx + b from our linear model
     slope_func = function(x_point, model) {

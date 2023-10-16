@@ -44,7 +44,8 @@ run_COYU<-function(character_number,trial_data,coyu_parameters,probability_set) 
   names(data_candidates)[names(data_candidates)==character_mean] <- "mn"
   names(data_references)[names(data_references)==character_mean] <- "mn"
   
-  #Run probability tests - TODO: this is a very DUST-like way of looking at how to do this; maybe move this bit to DUST code 
+  ## Run probability tests - TODO: this is a very DUST-like way of
+  ## looking at how to do this; maybe move this bit to DUST code
   alpha_crit3=as.numeric(probability_set["3_year_reject"])
   alpha_crit2=as.numeric(probability_set["2_year_reject"])
   alpha_crit2a=as.numeric(probability_set["2_year_accept"]) 

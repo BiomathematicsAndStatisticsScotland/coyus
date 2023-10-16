@@ -38,8 +38,6 @@
 #' @param alpha_name Optional. Name of the dataset to transform
 #'     (e.g. "2_year_reject"). If not provided first_dataset will be
 #'     used to find a dataset.
-#' @param what Optional. Whether to provide "candidate" or "reference"
-#'     data. Default "candidate"
 #' @return data frame containing the results of interest
 #' @examples
 #' 
@@ -50,22 +48,10 @@
 #' results1<-COYU_all_results(test_2_year$trial_data,
 #'                            test_2_year$coyu_parameters,
 #'                            test_2_year$probability_sets)[[1]]
-#' ## note [[1]] selects the results for the first probability set
-#' 
-#' COYU_print_results(results1,
-#'                    test_2_year$coyu_parameters,
-#'                    test_2_year$character_key,
-#'                    test_2_year$probability_set[1,])
-#' ## note test_2_year$probability_set[1,] gives the probabilities for this set
 #' 
 #' write.csv(COYU_results_as_dataframe(results1, "2_year_reject"),
 #'           "tester.csv")
 #' 
-#' COYU_plot_results(results1,
-#'                   character_key = test_2_year$character_key,
-#'                   plot_file="MyPlots.pdf")
-#' ## results sent to a pdf file.
-#'
 #' @export                                        
 COYU_results_as_dataframe <- function(results,
                                       alpha_name=first_dataset(results)) {
@@ -92,7 +78,7 @@ COYU_results_as_dataframe.COYUs9AllResults <- function(results,
 }
 
 #'@export
-COYU_results_as_dataframe.COYUs9CharacterResults <- function(char_results,
+COYU_results_as_dataframe.COYUs9CharacterResults <- function(results,
                                                              alpha_name=first_dataset(results)) {
 
     ref_target_columns=c("reference_varieties","reference_afp",
@@ -139,15 +125,15 @@ COYU_results_as_dataframe.COYUs9CharacterResults <- function(char_results,
     }
 
     ref_overall = cbind(
-        data.frame(is_candidate=rep(0, nrow(char_results$reference))),
-        overall_data(char_results$reference,
+        data.frame(is_candidate=rep(0, nrow(results$reference))),
+        overall_data(results$reference,
                      ref_target_columns,
                      ref_rename_columns)
     )
     
     cand_overall = cbind(
-        data.frame(is_candidate=rep(1, nrow(char_results$candidate))),
-        overall_data(char_results$candidate,
+        data.frame(is_candidate=rep(1, nrow(results$candidate))),
+        overall_data(results$candidate,
                      cand_target_columns,
                      cand_rename_columns)
     )
@@ -158,15 +144,15 @@ COYU_results_as_dataframe.COYUs9CharacterResults <- function(char_results,
     ref_yearly_patterns = c("Mean_%s", "Log(SD+1)_%s", "AdjLog(SD+1)_%s")    
     cand_yearly_patterns = c("Extrapolation_%s", "Mean_%s", "Log(SD+1)_%s", "AdjLog(SD+1)_%s")
     reordered_yearly = sapply(cand_yearly_patterns,
-                              function (pattern) sprintf(pattern, get_trial_years(char_results)))
+                              function (pattern) sprintf(pattern, get_trial_years(results)))
     
     ref_yearly = yearly_data(
-        extract_yearly_result(char_results$yearly_results,"ref_results"),
+        extract_yearly_result(results$yearly_results,"ref_results"),
         c("AFP","mn","logSD","adjusted_logSD"),
         c("AFP",ref_yearly_patterns))
 
     cand_yearly = yearly_data(
-        extract_yearly_result(char_results$yearly_results,"cand_results"),
+        extract_yearly_result(results$yearly_results,"cand_results"),
         c("AFP","mn","logSD","adjusted_logSD", "extrapolation_factor"),
         c("AFP",cand_yearly_patterns)
     )
