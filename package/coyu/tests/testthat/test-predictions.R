@@ -21,7 +21,43 @@ results3<-COYU_all_results(test_3_year_withmissing$trial_data,
                            test_3_year_withmissing$coyu_parameters,
                            test_3_year_withmissing$probability_sets)[[1]]
 
-#Some checks to make sure results are roughly what we expect. 
+## Some checks to make sure results are roughly what we expect
+
+test_that("Expected columns exist, and no others", {
+    ## Mainly to check for dataframe design changes
+    
+    expected_columns_1=c("character_number", "grand_mean",
+    "spline_df", "reference_mean_logSD", "yearly_results", "anova",
+    "reference", "candidates")
+
+    expected_yearly_columns_1=c("grand_mean","sum_sqrs",
+                                "eff_df_spline", "ref_variety_spline",
+                                "cand_results", "ref_results")
+
+    expected_yearly_ref_columns_1=
+        c("year",           "variety",        "AFP",            "mn",
+          "logSD",          "adjusted_logSD")
+
+    expected_yearly_cand_columns_1=
+        c("year",                 "variety",              "AFP",
+          "mn",                   "logSD",
+          "adjusted_logSD", "regression_factor",
+          "extrapolation_factor")
+
+    expected_df_columns_1=
+        c("character_number", "AFP", "is_candidate", "variety",
+          "extrapolation", "extrapolation_factor", "mean",
+          "actual_logSD", "adjusted_logSD", "candidate_COYU_pvalue",
+          "candidate_prediction_err", "candidate_coyu_threshold",
+          "candidate_not_uniform", "Extrapolation_1992",
+          "Extrapolation_1993", "Mean_1992", "Mean_1993",
+          "Log(SD+1)_1992","Log(SD+1)_1993", "AdjLog(SD+1)_1992",
+          "AdjLog(SD+1)_1993")
+    
+    result_df = COYU_results_as_dataframe(results1)
+    expect_equal(21, length(names(result_df)))
+    expect_true(all(expected_df_columns_1==names(result_df)))
+})
 
 test_that("Correct result set dimensions",{
   expect_true(is_2_year(results1))
@@ -85,21 +121,21 @@ test_that("Bad trial setup fails sanity check - 3 year", {
 
 test_that("Predictions in resultset 1",{
   result_df <- COYU_results_as_dataframe(results1)
-  expect_equal( nrow(result_df), 34)
-  expect_equal( result_df[result_df$character_number==8,"candidate_means"], c(75.0315,83.6), tolerance=1e-04)
-  expect_equal( result_df[result_df$character_number==70,"candidate_adjusted_logSD"], c(2.157,2.292), tolerance=1e-04)
+  expect_equal( nrow(result_df), 340)
+  expect_equal( result_df[result_df$character_number==8 & result_df$is_candidate==1,"mean"], c(75.0315,83.6), tolerance=1e-04)
+  expect_equal( result_df[result_df$character_number==70 & result_df$is_candidate==1,"adjusted_logSD"], c(2.157,2.292), tolerance=1e-04)
 })
 
 
 test_that("Predictions in resultset 2",{
   result_df <- COYU_results_as_dataframe(results2)
-  expect_equal( result_df[result_df$character_number==41,"candidate_not_uniform"],c(FALSE,TRUE), tolerance=1e-04)
-  expect_equal( result_df[result_df$character_number==41,"candidate_means"],c(68.3500, 74.5475), tolerance=1e-04)
+  expect_equal( result_df[result_df$character_number==41 & result_df$is_candidate==1,"candidate_not_uniform"],c(FALSE,TRUE), tolerance=1e-04)
+  expect_equal( result_df[result_df$character_number==41 & result_df$is_candidate==1,"mean"],c(68.3500, 74.5475), tolerance=1e-04)
 })
 
 test_that("Predictions in resultset 3",{
   result_df <- COYU_results_as_dataframe(results3)
-  expect_equal(result_df[result_df$candidate_afp==2709,"candidate_prediction_err"],
+  expect_equal(result_df[result_df$AFP==2709,"candidate_prediction_err"],
                c(0.01878927, 0.05940191, 0.06144965, 0.05827952, 0.06774688, 0.05963770,
                  0.07558062, 0.06415667, 0.05904060, 0.05188961, 0.03553067, 0.06034569,
                  0.05042147, 0.05703776, 0.06131047, 0.05556145, 0.05544977, 0.04310948,

@@ -37,10 +37,16 @@ char_results = run_COYU(character_number, trial_data, coyu_parameters, probabili
 
 char_results_3yr=char_results$`3_year_reject`
 
-char_log_sd_data_fromresults=char_results_3yr$mean_sd_data[[3]]$cand_logsd
+char_log_sd_data_fromresults=char_results_3yr$yearly_results[[3]]$cand_results$logSD
 
+test_that("We got the right number of results", {
+  expect_equal(length(char_log_sd_data_orig), 6)
+  expect_equal(length(char_log_sd_data_fromresults), 6)  
+})
 
 test_that("logSD data is the same from results object as it is from original data",{
+  test_results = char_log_sd_data_orig==char_log_sd_data_fromresults
+  expect_equal(length(test_results), 6)
   expect_true(all(char_log_sd_data_orig==char_log_sd_data_fromresults))
 })
 
