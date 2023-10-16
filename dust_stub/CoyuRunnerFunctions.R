@@ -30,9 +30,23 @@ resultsCOYU<-function(results,data_input,probability_set,connection="") {
                      verbose=data_input$plot_options!=0) 
 
   
-  if (data_input$plot_options > 0) {
-    write("\nPLOT FILE: \n",file=connection)
-    write(sprintf("\t%s",data_input$plot_file),file=connection)
+    
+  if (data_input$plot_options == 1) {
+      write("\nPLOT FILE: \n",file=connection)
+      write(sprintf("\t%s", getAllCandidatesPlotFile(data_input)), file=connection)
+  }
+    
+  if (data_input$plot_options == 2) {
+      write("\nPLOT FILES: \n",file=connection)
+      write(sprintf("\t%s",
+                    getPerCandidatePlotFile(data_input,
+                                            data_input$coyu_parameters$candidates[1])),
+            file=connection)
+      write("  to   ", file=connection)
+      write(sprintf("\t%s",
+                    getPerCandidatePlotFile(data_input,
+                                            tail(data_input$coyu_parameters$candidates, n=1))),
+            file=connection)
   }
 
   ## reset width to original setting

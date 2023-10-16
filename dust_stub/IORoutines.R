@@ -109,7 +109,7 @@ readCoyu9File<-function(name) {
     data_file$prob_set_count=scan(con,what=integer(),n=1,quiet=TRUE)
     data_file$plot_options=scan(con,what=integer(),n=1,quiet=TRUE)
     data_file$output_width=(scan(con,what=integer(),n=1,quiet=TRUE)+1)*80
-
+        
     ## Change when we revise the data format accepted by the COYU package
     data_file$probability_sets<-matrix(scan(con,n=data_file$prob_set_count*3,quiet=TRUE),
                                        nrow=data_file$prob_set_count,
@@ -136,6 +136,18 @@ getOutputFile <- function(dust_data, suffix=".dat") UseMethod("getOutputFile")
 
 getOutputFile.DustData <- function(dust_data, suffix=".dat") {
     return(paste(dust_data$output_file_prefix, trimws(suffix, which="both"), sep="", collapse=""))
+}
+
+getAllCandidatesPlotFile<-function(dust_data) UseMethod("getAllCandidatesPlotFile")
+
+getAllCandidatesPlotFile.DustData<-function(dust_data) {
+    return (getOutputFile(dust_data, "_all_candidates.pdf"))
+}
+
+getPerCandidatePlotFile<-function(dust_data, candidate_afp) UseMethod("getPerCandidatePlotFile")
+
+getPerCandidatePlotFile.DustData<-function(dust_data, candidate_afp) {
+    return (getOutputFile(dust_data, sprintf("candidate_%s.pdf", candidate_afp)))
 }
 
 anonymiseDataset<-function(data_file,anonymise_afp=FALSE,anonymise_name=TRUE) UseMethod("anonymiseDataset")

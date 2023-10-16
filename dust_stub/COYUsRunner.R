@@ -52,7 +52,8 @@ capture_warnings <- function() {
             ## Respect the DUST plot options
             if (data_input$plot_options == 1) {
                 ## Plot all the candidates on the per-year charts. For statistical purposes
-                all_candidates_plot_file = getOutputFile(data_input, "_all_candidates.pdf")
+                all_candidates_plot_file = getAllCandidatesPlotFile(data_input)
+                
                 discard<-COYU_plot_results(results[[1]],
                                            data_input$character_key,
                                            plot_file=all_candidates_plot_file,
@@ -63,8 +64,8 @@ capture_warnings <- function() {
                 ## Plot each of the candidates on a per-year chart, without any of the others.
                 ## Useful for showing to breeders
                 for (candidate in data_input$coyu_parameters$candidates) {
-                    per_candidate_plot_file = getOutputFile(data_input,
-                                                            sprintf("candidate_%s.pdf", candidate))
+                    per_candidate_plot_file = getPerCandidatePlotFile(data_input,candidate)
+                    
                     discard = COYU_plot_results(results[[1]],
                                                 data_input$character_key,
                                                 plot_file=per_candidate_plot_file,
