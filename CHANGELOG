@@ -1,12 +1,20 @@
+* Fri October 13 2023 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.9.3-1
+- Add smoothing line beyond range of reference varieties in graph output
+- Respect plot options from DUST and provide COYU_plot_data function to
+  access the plot data more easily.
+- Modify COYU results process to emit additional values to the results
+  files and dataframes.
+- Improve handling of extrapolated values with differing warning levels at
+  thresholds of 1.2 and 1.5
 * Tue Jan 25 2022 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.9.2-1
 - Fix for issue identified by Sally around logSD means in printed output
-* Wed Dec 22 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.9-1 
+* Wed Dec 22 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.9-1
 - Fix result printing to resolve yearly mean and sd ordering issues and
   indicate values not yet acceptable in 2 year runs
-* Wed Jun 30 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.8-1 
+* Wed Jun 30 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.8-1
 - Fix duplicate variety names
 - Improved error messages for DUST use
-* Wed Feb 10 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.7-1 
+* Wed Feb 10 2021 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.7-1
 - Integrate documentation changes
 * Tue Jul 16 2019 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.6-1
 - Improve error messages delivered to package users
@@ -42,7 +50,7 @@
 - Fix printing of symbols, means, removed reference mean comparison
 - Fixed ordering of plot data results to be same as others
 - Anonymised datasets given as examples by removing variety names
-- Remove ":" verdict 
+- Remove ":" verdict
 - Change output precision to 3 significant figures
 
 * Mon Oct 6 2014 David Nutter <david.nutter@bioss.ac.uk> - coyu-1.0-1
@@ -50,4 +58,4 @@
 - Fix spurious graphics device invocation and rework plot axes
 - Fix error in messages from COYU_sanity_check
 - Fix missing documentation warnings from R CMD CHECK
- 
+

@@ -1,5 +1,91 @@
 For completed items, see CHANGELOG
 
+Requested changes from Adrian's document 2023-05-31:
+
+  1. Graphs: extend smooth line beyond reference varieties to whole range of x
+     axis. Use dashed line outside range of reference varieties if possible. 
+
+     COMPLETED WITH DUBIOUS LINEAR MODEL 2023-10-09
+     
+  
+  2. Graphs: Label candidates with AFPs – management through current DUST
+     options to avoid confidentiality issues. There will be two options for
+     graphical output: 
+
+     * Tables and 3 plots per page (plot option==1) Plots including all candidates. Candidates
+       to be labelled by AFP. All plots for a characteristic on a page (ie 2
+       years or 3 years). 
+
+     * Tables and 1 plots per page (plot option==2) Plots with only
+       one candidate on. One pdf file for each of the selected
+       candidates. Candidates to be labelled by AFP. All plots for a
+       characteristic on a page (ie 2 years or 3 years).
+
+     * Plot option >= 0 - output candidate and reference variety CSV tables
+
+     Relabelling of options within DUST for COYUs: Preferred option: if
+     possible, David to be given capability by AFBI to edit interface. If not, AFBI
+     to do it.
+
+     The preferred option relies on having a build environment for DUST -
+     Adrian to explore at the June '23 IDSG meeting. It appears basic agreement
+     was reached and we will hopefully get access to a development environment
+     as a result.
+
+     COMPLETED 2023-10-05
+
+   3. CSV files. Expand content:
+ 
+     * Add in data for reference varieties. Preference is to add to the same
+       file, with an additional column to denote as reference or candidate.
+       However, separate csv files for candidates and reference varieties is
+       fine if this is easier. 
+
+     * Add in data for individual years, including year, extrapolation factor,
+       mean, actual logSD and adjusted logSD. The preference again is to just
+       have one big csv file, with separate columns for each year and for over
+       years, but again we could live with separate files for overall and
+       yearly data.
+
+     Adrian has provided an example in the email dated Friday 2023-06-23
+
+    COMPLETED 2023-10-13
+ 
+   4. Extrapolation: flag cases in COYUSOP output with a 3-point scale: 
+
+     * No flag or 0: extrapolation index ≤ 1.2. 
+
+     * 1: extrapolation index > 1.2 but ≤ 1.5. Associated text (e.g. for
+       explanatory note) “There is an extrapolation issue but it is limited.
+       The COYU verdicts should be reviewed alongside the COYU graphs to verify
+       that the decisions are sensible.” 
+
+     * 2: extrapolation index > 1.5. Associated text (e.g. for explanatory
+       note) “there is serious extrapolation. The COYU decisions may be
+       unreliable. In these cases, decisions must be made based on the data
+       directly. The graphs in the PDF output may be of use. See TGP8”
+
+     COMPLETED 2023-10-10
+ 
+   5. Extrapolation: do not exclude any results for cases with
+      extrapolation. 
+
+    NOTE: 2023-10-10 - as far as I can see no data is being
+    excluded. Is there an example? 
+
+   6. Diacritics: ensure that software will run with diacritics in file and
+      directory names.  
+
+      This is largely an issue now of data files from differing locales being
+      exchanged. If everything is in UTF-8 then all should be well and diacritics can
+      be used. If files encoded in codepage 850/852/latin-2 are read as UTF-8
+      or iso-8859-1 strange things can happen due to missing diacritics
+
+      We should try and force all datafiles to unicode and complain if
+      we're fed anything else. This is a DUST modification really. 
+
+Other changes:
+
 * Getting Started Vignette is quite brief. Would be useful to specify
   the data input requirements for COYU_all_results in detail.
 
