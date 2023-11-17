@@ -154,8 +154,13 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
       active_candidates = candidates
   }
 
-  year_plot_data = lapply(char_result$yearly_results,COYU_yearly_plot_data)
-    
+  year_plot_data = lapply(char_result$yearly_results,
+                          function (x) {
+                              ret = COYU_yearly_plot_data(x)
+                              ret$ref_variety_spline = x$ref_variety_spline
+                              return(ret)
+                          })
+                          
   ## Find maxima and minima across x and y scales for each character, ignoring missing values
   minmax_x<-sapply(year_plot_data,function(year_result) {
     return(c(min(c(year_result$ref_mean,
@@ -193,46 +198,26 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
          ylab="log (SD+1)",
          main=paste("Year ",year_result$year),
          pch=4)
+          
+    ## Now plot extension lines from the spline object for
+    ## extrapolated data
+    x_spl_points_below = seq(character_xlim[1], min(year_result$x_line),
+                             length.out=20)
+    y_spl_points_below = predict(year_result$ref_variety_spline,
+                                 x_spl_points_below)$y
 
-    ## Calculate the "extension lines" for our fit line by taking the
-    ## last N points at each end and fitting a straight line to them
-    ##
-    ## There are other things we could do here, e.g. provide an
-    ## extend_line() functional argument to this function that would
-    ## allow user-controlled line extensions (and provide a default
-    ## implementation)
-    ##
-    ## See also comments in COYU_single_year about what we might
-    ## like to return to the end user of this code
-    points_to_fit = 100
-    data_below = data.frame(x_line= head(year_result$x_line, points_to_fit),
-                            y_line= head(year_result$y_line, points_to_fit))
-    data_above = data.frame(x_line= tail(year_result$x_line, points_to_fit),
-                            y_line= tail(year_result$y_line, points_to_fit))
+    x_spl_points_above = seq(max(year_result$x_line), character_xlim[2],
+                             length.out=20)
+    y_spl_points_above = predict(year_result$ref_variety_spline,
+                                 x_spl_points_above)$y
 
-    lm_below = stats::lm(y_line ~ x_line, data=data_below)
-    lm_above = stats::lm(y_line ~ x_line, data=data_above)    
-    
-    ## Calculate the extension line with y=mx + b from our linear model
-    slope_func = function(x_point, model) {
-        intercept = model$coefficients[1]
-        slope = model$coefficients[2]
-        return (slope * x_point + intercept)
-    }
-
-    x_points_below = seq(character_xlim[1], min(data_below$x_line), length.out=20)
-    y_points_below = sapply( x_points_below, slope_func, lm_below )
-
-    x_points_above = seq(max(data_above$x_line), character_xlim[2], length.out=20)
-    y_points_above = sapply( x_points_above, slope_func, lm_above )
-      
-    lines(x=x_points_below,
-          y=y_points_below,
+    lines(x=x_spl_points_below,
+          y=y_spl_points_below,
           lty=2,
           col="blue")
 
-    lines(x=x_points_above,
-          y=y_points_above,
+    lines(x=x_spl_points_above,
+          y=y_spl_points_above,
           lty=2,
           col="blue")
       
@@ -257,6 +242,20 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
          col="red")
     
   })
+
+  par(xpd=NA)
+    
+  ## Add legend to last chart
+  legend( x="topleft",
+        inset=c(-0.1,-0.8),
+        bty="n",
+        legend=c("Reference varieties",
+                 "Spline fit (dashed is extrapolated)",
+                 "Candidate varieties"),
+        col=c("black","blue","red"),
+        lwd=1,
+        lty=c(0,2,0), 
+        pch=c("X","","C") )
   
   ## Force a page break in 3 year, and if plot_options==2
   if (is_3_year(char_result) || plot_options==2) {
