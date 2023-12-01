@@ -67,7 +67,6 @@
 #' ## results sent to a pdf file. 
 #'
 #' @export
-#' @importFrom stats lm
 #' @importFrom grDevices dev.off pdf
 #' @importFrom graphics plot lines points plot.new title par text
 COYU_plot_results <- function(results,
@@ -200,17 +199,29 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
          pch=4)
           
     ## Now plot extension lines from the spline object for
-    ## extrapolated data
+    ## extrapolated data, removing any data that goes beyond ylim
     x_spl_points_below = seq(character_xlim[1], min(year_result$x_line),
                              length.out=20)
     y_spl_points_below = predict(year_result$ref_variety_spline,
                                  x_spl_points_below)$y
 
+    valid_points_below= ! ((y_spl_points_below < character_ylim[1]) |
+                           (y_spl_points_below > character_ylim[2]))
+
+    x_spl_points_below = x_spl_points_below [ valid_points_below ]
+    y_spl_points_below = y_spl_points_below [ valid_points_below ]
+      
     x_spl_points_above = seq(max(year_result$x_line), character_xlim[2],
                              length.out=20)
     y_spl_points_above = predict(year_result$ref_variety_spline,
                                  x_spl_points_above)$y
 
+    valid_points_above= ! ((y_spl_points_above < character_ylim[1]) |
+                           (y_spl_points_above > character_ylim[2]))
+
+    x_spl_points_above = x_spl_points_above [ valid_points_above ]
+    y_spl_points_above = y_spl_points_above [ valid_points_above ]  
+      
     lines(x=x_spl_points_below,
           y=y_spl_points_below,
           lty=2,
@@ -245,9 +256,18 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
 
   par(xpd=NA)
     
-  ## Add legend to last chart
-  legend( x="topleft",
-        inset=c(-0.1,-0.8),
+  ## Add legend to last chart - has to be positioned slightly
+  ## differently in 2 and 3 year plots
+  if (is_3_year(char_result)) {
+      legend_inset=c(-1.2,0.7)
+      legend_x="bottomright"
+  } else {
+      legend_inset=c(-0.1,-0.8)
+      legend_x="topleft"
+  }
+    
+  legend( x=legend_x,
+        inset=legend_inset,
         bty="n",
         legend=c("Reference varieties",
                  "Spline fit (dashed is extrapolated)",
@@ -256,14 +276,15 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
         lwd=1,
         lty=c(0,2,0), 
         pch=c("X","","C") )
-  
-  ## Force a page break in 3 year, and if plot_options==2
-  if (is_3_year(char_result) || plot_options==2) {
+
+  title(sprintf("Character '%s'  (%d)",
+               gsub("^\\s+|\\s+$", "", character_name),
+               char_result$character_number),
+        outer=TRUE)
+    
+  ## Force a page break in 3 year
+  if (is_3_year(char_result)) {
     plot.new()
   }
-  
-  title(sprintf("Character '%s'  (%d)",
-                gsub("^\\s+|\\s+$", "", character_name),
-                char_result$character_number),
-        outer=TRUE)
+ 
 }
