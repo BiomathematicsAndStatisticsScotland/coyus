@@ -153,7 +153,7 @@ COYU_results_as_dataframe.COYUs9CharacterResults <- function(results,
 
     cand_yearly = yearly_data(
         extract_yearly_result(results$yearly_results,"cand_results"),
-        c("AFP","mn","logSD","adjusted_logSD", "extrapolation_factor"),
+        c("AFP","extrapolation_factor", "mn","logSD","adjusted_logSD"),
         c("AFP",cand_yearly_patterns)
     )
     

@@ -59,6 +59,37 @@ test_that("Expected columns exist, and no others", {
     expect_true(all(expected_df_columns_1==names(result_df)))
 })
 
+## Smoke test for Adrians 2023-12-18 misordered values bug
+test_that("Yearly means, logSDs, extrapolation match overall", {
+    result_df = COYU_results_as_dataframe(results1)
+
+    check_yearly_val <- function(overall_col,
+                                 per_year_cols,
+                                 check_fun=mean) {
+        if (!is.na(result_df[row, overall_col])) {
+            expect_equal(result_df[!!row, !!overall_col],
+                         check_fun(as.numeric(result_df[!!row, per_year_cols]),
+                                   na.rm=TRUE))                   
+        }
+    }
+    
+    for (row in seq(1,nrow(results_df)) ) {
+        ## print(sprintf("Row %s, mean_1993=%s", row, spkdens_df[row, "Mean_1993"]))
+        check_yearly_val("extrapolation_factor",
+                         c("Extrapolation_1992", "Extrapolation_1993"),
+                         check_fun=max)
+
+        check_yearly_val("mean",
+                         c("Mean_1992", "Mean_1993"))
+
+        check_yearly_val("actual_logSD",
+                         c("Log(SD+1)_1992", "Log(SD+1)_1993"))
+
+        check_yearly_val("adjusted_logSD",
+                         c("AdjLog(SD+1)_1992", "AdjLog(SD+1)_1993"))        
+    }
+})
+
 test_that("Correct result set dimensions",{
   expect_true(is_2_year(results1))
   expect_true(is_2_year(results2))
