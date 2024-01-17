@@ -1,7 +1,7 @@
 
 REPOSITORY_DIRECTORY<-"repo"
 EXPECTED_R_VERSION<-"3.0.0"
-EXPECTED_PACKAGE_VERSION<-"1.6-1"
+EXPECTED_PACKAGE_VERSION<-"1.9-1"
 PACKAGE_NAME<-"coyu"
 
 initial_args <- commandArgs(trailingOnly = FALSE)
@@ -74,10 +74,14 @@ capture_warnings <- function() {
                 }
             }
               
-            
-            con<-file(data_input$output_file, open="w")
+	    ## Format the results into a string variable first as this
+	    ## speeds writing files on network drives. We could probably
+	    ## also set blocking=FALSE on an ordinary file connection but
+	    ## I don't like the lack of error handling
+            con<-textConnection("formatted_results", local=TRUE, open="w")
             ignore<-formatResults(data_input, results, con)
-            close(con)
+            close(con)			
+            cat(formatted_results, file=data_input$output_file, sep="\n")	
 
             if (data_input$plot_options >= 0) {
                 ## output candidate and reference varieties data in CSV form
