@@ -86,9 +86,11 @@ capture_warnings <- function() {
             if (data_input$plot_options >= 0) {
                 ## output candidate and reference varieties data in CSV form
                 results_df = COYU_results_as_dataframe(results[[1]])
-                write.csv(results_df,file=data_input$csv_file)
+	        con<-textConnection("formatted_CSV", local=TRUE, open="w")
+	        write.csv(results_df, file=con)
+		close(con)
+		cat(formatted_CSV, file=data_input$csv_file, sep="\n")
             }
-              
           },
           warning=function(w) {
               new_w = warnings_list

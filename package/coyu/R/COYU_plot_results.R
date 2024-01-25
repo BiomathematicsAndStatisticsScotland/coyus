@@ -163,19 +163,19 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
   ## Find maxima and minima across x and y scales for each character, ignoring missing values
   minmax_x<-sapply(year_plot_data,function(year_result) {
     return(c(min(c(year_result$ref_mean,
-                   year_result$cand_mean[ names(year_result$cand_mean)==active_candidates ]),
+                   year_result$cand_mean[ names(year_result$cand_mean) %in% active_candidates ]),
                  na.rm=TRUE),
              max(c(year_result$ref_mean,
-                   year_result$cand_mean[ names(year_result$cand_mean)==active_candidates ]),
+                   year_result$cand_mean[ names(year_result$cand_mean) %in% active_candidates ]),
                  na.rm=TRUE)))
   })
   
   minmax_y<-sapply(year_plot_data,function(year_result) {
     return(c(min(c(year_result$ref_logsd,
-                   year_result$cand_logsd[ names(year_result$cand_logsd)==active_candidates ]),
+                   year_result$cand_logsd[ names(year_result$cand_logsd) %in% active_candidates ]),
                  na.rm=TRUE),
              max(c(year_result$ref_logsd,
-                   year_result$cand_logsd[ names(year_result$cand_logsd)==active_candidates ]),
+                   year_result$cand_logsd[ names(year_result$cand_logsd) %in% active_candidates ]),
                  na.rm=TRUE)))
   })
   
@@ -238,8 +238,8 @@ COYU_plot_single_character.COYUs9CharacterResults <- function(char_result,
           col="blue")
 
     ## Plot candidates as "C"
-    active_cand_mean = year_result$cand_mean[ names(year_result$cand_mean)==active_candidates ]
-    active_cand_logsd = year_result$cand_logsd[ names(year_result$cand_logsd)==active_candidates ]
+    active_cand_mean = year_result$cand_mean[ names(year_result$cand_mean) %in% active_candidates ]
+    active_cand_logsd = year_result$cand_logsd[ names(year_result$cand_logsd) %in% active_candidates ]
       
     points(active_cand_mean, active_cand_logsd, pch="c", col="red")
 
