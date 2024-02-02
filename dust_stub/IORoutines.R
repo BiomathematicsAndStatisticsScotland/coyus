@@ -299,57 +299,55 @@ readUFile<-function(name,target_dir=".") {
   j_file_info = extractDataFileHeaders(stddev_files, stddevs)    
     
   ## Get yearly means and standard deviations in 1 data frame.
-  ## N.B variety names can be inconsistent between years, AFP is expected to be unique so we check this later
+    
+  ## N.B variety names can be inconsistent between years, AFP is
+  ## expected to be unique so we check this later
   means_by_year<-do.call("rbind",lapply(means,filterMData,varieties_in_trial,characters_in_trial))
   stddevs_by_year<-do.call("rbind",lapply(stddevs,filterJData,varieties_in_trial,characters_in_trial))
 
-  ## Catch "bad" data files where M and J files do not contain comparable data
-  ## Note possibly "better" fix below using merge()
-  if (nrow(means_by_year) != nrow(stddevs_by_year)) {
-      stop(sprintf("means for year %s: %d rows. stddevs for year %s: %d rows. I will not combine these. Ensure missing data is explicitly recorded",
-                   year,
-                   nrow(means_by_year),
-                   year,
-                   nrow(stddevs_by_year)))
+  ##Make mean and stddev data match up in each year, adding extra rows as necessary
+  all_years = unique(means_by_year$year)      
+  for (target_year in all_years) {
+     year_means = means_by_year[means_by_year$year == target_year, ]
+     year_stddevs = stddevs_by_year[stddevs_by_year$year == target_year, ]
+
+     ## Ony add extra rows to means as the rest will be added by merge below
+     ## We don't use all.y in merge due to problems with duplicate columns. 
+     missing_AFPs_means = setdiff(year_stddevs$AFP, year_means$AFP)
+     missing_AFPs_stddevs = setdiff(year_means$AFP, year_stddevs$AFP)
+          
+     if (length(missing_AFPs_means) > 0) {
+         warning(sprintf("Mean data for AFPs %s in year %s is missing but STDDEV data is present.", paste(missing_AFPs_means, collapse=","), target_year))
+
+         extra_rows = year_stddevs[year_stddevs$AFP %in% missing_AFPs_means, c("year","AFP","variety")]
+         blank_cols = data.frame(matrix(NA, nrow=2, ncol=length(characters_in_trial)))
+         extra_rows=cbind(extra_rows, data.frame(matrix(NA, nrow=nrow(extra_rows), ncol=length(characters_in_trial))))
+         colnames(extra_rows) = colnames(means_by_year)
+         means_by_year = rbind(means_by_year, extra_rows)
+     }
+
+     if (length(missing_AFPs_stddevs) > 0) {
+         warning(sprintf("STDDEV data for AFPs %s in year %s is missing but mean data is present", paste(missing_AFPs_stddevs, collapse=","), target_year))
+     }
+          
   }
-
     
-  ## Get canonical variety names from last year of mean values
-  last_year <- max(means_by_year$year)
-  variety_labels<-means_by_year[,c("AFP","variety")]
-    
-  ## Combine into a single dataset. Drop Year, AFP and variety columns
-  ## from 2nd frame as we'll use the first frame to provide these -
-  ## this does not work if means_by_year and stddevs_by_year have
-  ## differing numbers of rows
-  ##  
-  all_data<-cbind(means_by_year,
-                   subset(stddevs_by_year,
-                          select=!names(stddevs_by_year) %in% c("year","AFP","variety")))
-  ## 
-  ## Set canonical variety names - fails when we have differing
-  ## numbers of rows in means and stddevs and is not necessary anyway
-  ##
-  all_data$variety<-variety_labels[variety_labels$AFP==all_data$AFP,"variety"]
-  
-  ## Instead we could do something like this:
-  ## all_data=merge(means_by_year, stddevs_by_year, by=c("year", "AFP", "variety"))
-
-    
-  
+  all_data=merge(means_by_year,
+                 stddevs_by_year[, !colnames(stddevs_by_year) %in% ("variety")],
+                 all.x = TRUE, by=c("year", "AFP")) 
   
   coyu_parameters<-COYU_parameters(candidates=candidate_varieties,
                                    references=setdiff(varieties_in_trial,candidate_varieties),
                                    characters=characters_in_trial,
                                    num_years=num_trial_years)     
-
-  ## TODO: Replace with nlevels call, so we get the "real" years in the dataset.
-  ## We might want to cross-check the values laters
-  dataset_trial_years<-sapply(means,function(x) { swingYear(attr(x,"header")$year) }) 
-  character_key<-attr(stddevs[[1]],"header")$character_key[[1]]
                                    
   all_data$year <- as.factor(all_data$year)
   all_data$AFP <- as.factor(all_data$AFP)
+
+  dataset_trial_years_claimed<-sapply(means,function(x) { swingYear(attr(x,"header")$year) })
+  dataset_trial_years_actual = as.numeric(levels(all_data$year))
+              
+  character_key<-attr(stddevs[[1]],"header")$character_key[[1]]
   
   ## Do some checking TODO: should also check that actual M and J file
   ## counts match trial years as mistakes in the header of such files
@@ -366,6 +364,11 @@ readUFile<-function(name,target_dir=".") {
                  length(varieties_in_trial)))
   }
 
+  if (any(sort(dataset_trial_years_claimed) != sort(dataset_trial_years_actual))) {
+      warning(sprintf("The dataset header claims the years %s are in the trial. The actual years from the data files are %s. Using the actual years", dataset_trial_years_claimed, dataset_trial_years_actual))
+  }
+
+    
   missing_varieties<-setdiff(candidate_varieties,varieties_in_trial)
 
   if (length(missing_varieties) > 0) {
@@ -380,7 +383,7 @@ readUFile<-function(name,target_dir=".") {
   return(modifyList(header,
                     list(trial_data=all_data,
                          coyu_parameters=coyu_parameters,
-                         dataset_trial_years=dataset_trial_years,
+                         dataset_trial_years=dataset_trial_years_actual,
                          character_key=character_key,
                          m_file_info = m_file_info,
                          j_file_info = j_file_info
@@ -492,10 +495,11 @@ readJFile<-function(name,character_prefix="sUP",target_dir=".") {
   }, error=function(e) {
     checkForInvalidEncoding(name,e)
   }, finally= {
-      closeIfOpen(con)
+    closeIfOpen(con)
   })
 
   ## -1 (or less) is apparently the code for missing values; this is not documented in the DUST manual
+  ## -1 likely indicates an incomplete block design 
   character_data[character_data<=-1]=NA
   
   file_data<-data.frame(cbind(varieties,character_data))

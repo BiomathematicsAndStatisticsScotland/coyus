@@ -1,9 +1,3 @@
-
-REPOSITORY_DIRECTORY<-"repo"
-EXPECTED_R_VERSION<-"3.0.0"
-EXPECTED_PACKAGE_VERSION<-"1.9-1"
-PACKAGE_NAME<-"coyu"
-
 initial_args <- commandArgs(trailingOnly = FALSE)
 
 file_arg_name = "--file="
