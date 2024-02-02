@@ -180,3 +180,32 @@ get_yearly_col_names.COYUs9AllResultsDF<-function(results_df, col_patterns=YEARL
 get_yearly_col_names.data.frame<-function(results_df, col_patterns=YEARLY_COLUMN_PATTERNS) {
     return (get_col_names_matching(results_df, col_patterns))
 }
+
+
+#' df_apply
+#' 
+#' Equivalent of "apply" that works on rows/columns of dataframe and
+#' returns a list Reason for this existing is apply()'s insistence
+#' on coercing everything to a matrix which means you lose type
+#' information and R will randomly pick a type for you.
+#'
+#' This is an internal function and should not be exported
+df_apply <- function (target_df, margin, func, ...) {
+    list_ret=c()
+      
+    ## rows
+    if ( 1 %in% margin) {
+        for (row in 1:nrow(target_df)) {
+            list_ret = append(list_ret, func(target_df[row, ], ...))
+        }
+    }
+
+    ## columns
+    if (2 %in% margin) {
+        for (col in 1:col(target_df)) {
+            list_ret = append(list_ret, func(target_df[,col], ...))
+        }
+    }
+
+    return(list_ret)
+}

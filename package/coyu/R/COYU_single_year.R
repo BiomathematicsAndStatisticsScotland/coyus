@@ -77,7 +77,8 @@ COYU_single_year<-function(yr.i, dat.ref, dat.cand){
     
     yearly_ref_data_withmissing<-dat.ref[dat.ref$year==yr[yr.i],]
     
-    yearly_ref_data_nomissing<-yearly_ref_data_withmissing[!is.na(yearly_ref_data_withmissing$logSD),]
+    yearly_ref_data_nomissing<-yearly_ref_data_withmissing[!(
+        is.na(yearly_ref_data_withmissing$logSD)|is.na(yearly_ref_data_withmissing$mn)),]
     
     ## Possible fix for issue identified by Haidee on 2021-12-20 where
     ## some varieties have means, or SDs but not both    

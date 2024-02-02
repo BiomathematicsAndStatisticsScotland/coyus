@@ -36,10 +36,26 @@ run_COYU<-function(character_number,trial_data,coyu_parameters,probability_set) 
   
   data_candidates<-get_varieties(trial_data,coyu_parameters$candidates,character_number)
   data_references<-get_varieties(trial_data,coyu_parameters$references,character_number)
-  
+    
+  ##Cleanup negative values and make them missing data (NA). This
+  ##should already happen when reading DUST files but might not happen
+  ##when data is provided directly so we do it here.
+  data_candidates[(data_candidates[,character_mean] < 0 &
+                   !is.na(data_candidates[,character_mean])),
+                  character_mean] = NA
+  data_references[(data_references[,character_mean] < 0 &
+                   !is.na(data_references[,character_mean])),
+                  character_mean] = NA
+  data_candidates[(data_candidates[,character_stddev] < 0 &
+                   !is.na(data_candidates[,character_stddev])),
+                  character_stddev] = NA
+  data_references[(data_references[,character_stddev] < 0 &
+                   !is.na(data_references[,character_stddev])),
+                  character_stddev] = NA  
+    
   data_candidates$logSD<-log(data_candidates[,character_stddev]+1)
   data_references$logSD<-log(data_references[,character_stddev]+1)
-
+    
   #TODO: this rename is only required by Adrian's code
   names(data_candidates)[names(data_candidates)==character_mean] <- "mn"
   names(data_references)[names(data_references)==character_mean] <- "mn"

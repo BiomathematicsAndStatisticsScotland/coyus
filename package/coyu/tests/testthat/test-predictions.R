@@ -73,7 +73,7 @@ test_that("Yearly means, logSDs, extrapolation match overall", {
         }
     }
     
-    for (row in seq(1,nrow(results_df)) ) {
+    for (row in seq(1,nrow(result_df)) ) {
         ## print(sprintf("Row %s, mean_1993=%s", row, spkdens_df[row, "Mean_1993"]))
         check_yearly_val("extrapolation_factor",
                          c("Extrapolation_1992", "Extrapolation_1993"),
@@ -114,11 +114,35 @@ test_that("Dirty dataset fails sanity check",{
   expect_false(COYU_sanity_check(test_2_year_dirty$trial_data,test_2_year_dirty$coyu_parameters))
 })
 
-test_that("Other dirty dataset fails sanity check",{
+test_that("Check for appropriate behaviour with negative values (incomplete block design)",{
   with_negs<-test_2_year$trial_data
-  with_negs[1,4]=-10
-  with_negs[3,8]=-1
+  with_negs[1,4]=-10   ##Mess up a reference variety
+  with_negs[3,8]=-1    ##Mess up a candidate
+
+  ##Negatives in both candidate and reference, should fail
   expect_false(COYU_sanity_check(with_negs,test_2_year$coyu_parameters))
+  
+  ##Negatives in reference only, treated as missing data, other
+  ##requirements (DF, minimum number of common reference varieties)
+  ##NOT met. Should fail
+  with_negs<-test_2_year$trial_data
+  make_bad = c(658,203,83,101,274,65,4,340,814,925,1069,1080,1088)
+  with_negs[with_negs$AFP %in% make_bad ,4]=-1   ##Mess up reference varieties in character UP04 
+  expect_false(COYU_sanity_check(with_negs,test_2_year$coyu_parameters))
+
+  ##Negatives in reference only, should be treated as missing
+  ##data. Other requirements OK. Should pass
+  with_negs<-test_2_year$trial_data
+  make_bad = c(658,203,83,101)
+  with_negs[with_negs$AFP %in% make_bad ,4]=-1   ##Mess up reference varieties in character UP04 
+  expect_true(COYU_sanity_check(with_negs,test_2_year$coyu_parameters))
+  
+
+  ##Now actually try and run the trial with missing data and see if it breaks.
+  results3<-COYU_all_results(with_negs,
+                             test_2_year$coyu_parameters,
+                             test_2_year$probability_sets)[[1]]
+  #expect_true(result_ok)
 })
 
 ## Test sanity check for degrees freedom

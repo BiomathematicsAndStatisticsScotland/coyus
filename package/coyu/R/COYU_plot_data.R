@@ -35,8 +35,8 @@ COYU_yearly_plot_data.COYUs9SingleYearResult<-function(single_year_result) {
     names(cand_mean)<-single_year_result$cand_results$AFP
     names(cand_sd)<-single_year_result$cand_results$AFP
 
-    ref_mean_plot_x<-seq(min(ref_mean),
-                         max(ref_mean),
+    ref_mean_plot_x<-seq(min(ref_mean, na.rm=TRUE),
+                         max(ref_mean, na.rm=TRUE),
                          length.out=1000)
 
     ## Should only be one year value in this object - this is just a

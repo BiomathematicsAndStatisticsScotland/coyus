@@ -107,7 +107,11 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
     warning("coyu_parameters does not have type \"COYUs9Parameters\". Aborting check")
     return(FALSE)
   }
-  
+
+  detect_missing_data <- function(x) {
+      any(is.na(x)) || any(Filter(is.numeric,x) < 0)
+  }
+    
   ## N.B: this function is rather large and could be usefully split up
   
   success <- TRUE
@@ -228,13 +232,14 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
     }
 
     if (any(candidates_year[,c(character_means,character_stddevs)] < 0, na.rm=TRUE)) {
-      warning("Negative candidate measurement values in year ",year)
+      warning(sprintf("Negative candidate measurement values in year %s. Candidate data must be complete ",year))
       success <- FALSE
     }
-    
+
+    ## We don't fail on this check; instead treat negative means in
+    ## incomplete block designs as missing data later on.      
     if (any(reference_year[,c(character_means,character_stddevs)] < 0, na.rm=TRUE)) {
-      warning("Negative reference measurement values in year ",year)
-      success <- FALSE
+      warning(sprintf("Negative reference measurement values in year %s. Incomplete block design? ",year))
     }
     
     ## Check IQR for all characters, for both candidate and
@@ -252,10 +257,10 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
     
     success <- success && check_ref_iqr && check_cand_iqr
     
-    valid_reference_means<- reference_year[!apply(as.data.frame(reference_year[,character_means]),1,
-                                                  function(x) { any(is.na(x)) } ), ]
-    valid_reference_stddevs<- reference_year[!apply(as.data.frame(reference_year[,character_stddevs]),1,
-                                                    function(x) { any(is.na(x)) } ), ]
+    valid_reference_means<- reference_year[!df_apply(as.data.frame(reference_year[,character_means]),1,
+                                                  detect_missing_data), ]
+    valid_reference_stddevs<- reference_year[!df_apply(as.data.frame(reference_year[,character_stddevs]),1,
+                                                    detect_missing_data), ]
 
     ## A possible additional check here is to check for reference data
     ## where a mean or an SD is present for a character, but not
@@ -283,19 +288,19 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
  
   apparent_degrees_freedom_means = (nrow(
       data_ref[
-          !apply(
+          !df_apply(
                as.data.frame(data_ref[, character_means]),
                1,
-               function(x) { any(is.na(x)) }
+               detect_missing_data
            ),]
   ) - 4 * coyu_parameters$num_trial_years)
     
   apparent_degrees_freedom_stddevs = (nrow(
       data_ref[
-           !apply(
+           !df_apply(
                as.data.frame(data_ref[, character_stddevs]),
                1,
-               function(x) { any(is.na(x)) }
+               detect_missing_data
             ),]
   ) - 4 * coyu_parameters$num_trial_years)
 
@@ -324,16 +329,22 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
             FUN=function(year_pair) {
               year_1_data<-get_varieties(trial_data[trial_data$year==year_pair[1], ], variety_afp=coyu_parameters$references)
               year_2_data<-get_varieties(trial_data[trial_data$year==year_pair[2], ], variety_afp=coyu_parameters$references)
-              
-              valid_year_1_data<-year_1_data[!apply(year_1_data, 1, function(x) { any(is.na(x)) }),]
-              valid_year_2_data<-year_2_data[!apply(year_2_data, 1, function(x) { any(is.na(x)) }),]
+
+
+              ## base-R apply() can't work here without much fiddling
+              ## because it coerces to character and
+              ## detect_missing_data needs to work on the actual
+              ## typesin the data frame
+              valid_year_1_data<-year_1_data[!df_apply(year_1_data, 1, detect_missing_data),] 
+              valid_year_2_data<-year_2_data[!df_apply(year_2_data, 1, detect_missing_data),]
               
               common_varieties<-intersect(unique(valid_year_1_data$AFP),unique(valid_year_2_data$AFP))
               
               if (length(common_varieties) <  COYU_MIN_COMMON_REFERENCE_VARIETIES) {
-                warning("In this dataset the year-pairing ",
-                        paste(year_pair, collapse=","),
-                        " has fewer than ",COYU_MIN_COMMON_REFERENCE_VARIETIES," common reference varieties between them")
+                warning(sprintf("In this dataset the year-pairing %s has fewer than %d common reference varieties between them. Number of common reference varieties: %d",
+                                paste(year_pair, collapse=","),
+                                COYU_MIN_COMMON_REFERENCE_VARIETIES,
+                                length(common_varieties)))
                 success<<-FALSE
               }
               
