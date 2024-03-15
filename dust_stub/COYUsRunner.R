@@ -25,9 +25,9 @@ status=0
 warnings_list=list()
 
 capture_warnings <- function() {
-    if (length(warnings_list) > 1) {
+    if (length(warnings_list) > 0) {
         warnings_text = paste(sapply(warnings_list, function(x) { sprintf("Problem: %s", conditionMessage(x) )}), collapse="\n")
-        #See documentation for "call" in R for details of how to format conditionCall. Example: capture.output(conditionCall(x))
+        ## See documentation for "call" in R for details of how to format conditionCall. Example: capture.output(conditionCall(x))
     } else {
         warnings_text = ""
     }
@@ -90,22 +90,22 @@ capture_warnings <- function() {
               new_w = warnings_list
               new_w[[length(new_w)+1]] =w
               warnings_list <<- new_w
-              #invokeRestart("muffleWarning")
+              ## invokeRestart("muffleWarning")
           },     
           error=function(e) {
             has_errors<<-TRUE
             raw_calls<-sys.calls()
-            #Get the stack trace as something we can write(), losing
-            #the last 2 elements of the stack as that's this error
-            #handler.
-            #
-            #Also, if stack is "long", lose the first frame to save space in DUST's crappy error dialog...
+            ## Get the stack trace as something we can write(), losing
+            ## the last 2 elements of the stack as that's this error
+            ## handler and (if the stack is long) the first frame as
+            ## that's the body of this function and doesn't add much, even
+            ## though DUST's error dialog can handle longer error traces now
             if (length(raw_calls) > 4) {
                 calls<-capture.output(raw_calls[2:(length(raw_calls)-2)])
             } else {
                 calls<-capture.output(raw_calls[1:(length(raw_calls)-2)])
             }
-
+            
             warnings_text = capture_warnings()
             
             stack_text = paste(warnings_text, "\n", "R Error ocurred. ",e,"\nStack trace:\n\n",paste(calls,collapse="\n"))

@@ -1,6 +1,6 @@
-#library(devtools)
+## library(devtools)
+## load_all("package/coyu")
 
-#load_all("package/coyu")
 library(coyu)
 
 script_dir = dirname(sys.frame(1)$ofile)

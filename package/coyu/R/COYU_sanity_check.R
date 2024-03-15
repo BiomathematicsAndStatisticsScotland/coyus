@@ -209,8 +209,13 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
       character_iqr<-apply(as.data.frame(dataset[,c(character_means,character_stddevs)]),2,function(x) { IQR(x,na.rm=TRUE) })
       
       if (any(character_iqr==0)) {
-        warning(name," measurements ",paste(names(character_iqr)[character_iqr==0],collapse=",")," in year ",year," have an interquartile range of 0. This is not allowed")
-        return(FALSE)
+          if (name == "Candidate") {
+              warning(name," measurements ",paste(names(character_iqr)[character_iqr==0],collapse=",")," in year ",year," have an interquartile range of 0. This is not ideal, but COYUS will still run.")
+              return(TRUE)
+          } else {
+              warning(name," measurements ",paste(names(character_iqr)[character_iqr==0],collapse=",")," in year ",year," have an interquartile range of 0. This is not allowed. ")
+              return(FALSE)
+          }
       }
       return(TRUE)
     }
@@ -236,17 +241,17 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
       success <- FALSE
     }
 
-    ## We don't fail on this check; instead treat negative means in
-    ## incomplete block designs as missing data later on.      
+    ## We don't fail on this check as incomplete block designs can have negative means in them.      
     if (any(reference_year[,c(character_means,character_stddevs)] < 0, na.rm=TRUE)) {
       warning(sprintf("Negative reference measurement values in year %s. Incomplete block design? ",year))
     }
     
-    ## Check IQR for all characters, for both candidate and
-    ## reference. A value of 0 will cause subsequent code to fail so
-    ## we exit
+    ## Check IQR for all characters. 
+    ##   1) A value of 0 for reference varieties is not allowed
+    ##   2) A value of 0 for candidate varieties is allowed, but generates a warning. 
     ##  
-    ## For single-character trials, we don't perform the IQR check as it doesn't make sense
+    ## For single-character trials, we don't perform the IQR check on
+    ## candidates as it doesn't make sense
     if (nrow(candidates_year) > 1) {
       check_cand_iqr <- check_iqr("Candidate",candidates_year)
     } else {
