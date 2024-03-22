@@ -75,7 +75,9 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
   
   ## Over year summary
   yearly_summary<-apply(results,2,function(results_col) {
-    
+
+    char_number = results_col[["character"]]
+      
     char_results<-results_col[[first_dataset]]
 
     results_df = COYU_results_as_dataframe(char_results)
@@ -83,27 +85,46 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
     yearly_col_names = get_yearly_col_names(results_df,
                                             col_patterns=c(YEARLY_MEAN_PATTERN, YEARLY_LOGSD_PATTERN))
 
-      source_col_list = c("AFP", "variety", "extrapolation_factor",
+    yearly_mean_col_names =  get_yearly_col_names(results_df,
+                                                  col_patterns=c(YEARLY_MEAN_PATTERN))
+
+    yearly_logsd_col_names =  get_yearly_col_names(results_df,
+                                                   col_patterns=c(YEARLY_LOGSD_PATTERN))
+      
+    yearly_extrap_col_names = get_yearly_col_names(results_df,
+                                                   col_patterns=c(YEARLY_EXTRAPOLATION_PATTERN))
+      
+    source_col_list = c("AFP", "variety", "extrapolation_factor",
                         "mean", "adjusted_logSD", "actual_logSD",
                         yearly_col_names)
       
     summary_col_names<-c("AFP","Variety", "Extrapolation", "Char_Mean","Adj_LogSD","Unadj_Log_SD",
                          yearly_col_names)
 
-    candidate_summary<-results_df[ results_df$is_candidate==1,
-                                   source_col_list ]
-    candidate_summary$variety = strip_string_factor(candidate_summary$variety)    
-    colnames(candidate_summary)=summary_col_names
+    all_candidate_summary<-results_df[ results_df$is_candidate==1, ]     
+    all_candidate_summary$variety = strip_string_factor(all_candidate_summary$variety)
 
     reference_summary <- results_df[ results_df$is_candidate==0,
                                      source_col_list]
     reference_summary$variety = strip_string_factor(reference_summary$variety)
     colnames(reference_summary)=summary_col_names     
 
-    #Remove irrelevant columns before computing means
+    ## Remove irrelevant columns before computing means
     reference_means <- colMeans(reference_summary[,c(-1,-2,-3)], na.rm=TRUE)
-    
-    ##This could potentially be simplified by using results variable candidate_not_uniform
+
+    ## Get the threshold values we're interested in and order them to match the dataframe order
+    all_thresholds =
+        apply(matrix(sapply(results_col[alpha_names], 
+                            function(character_results) { character_results$candidates$candidate_coyu_threshold }),
+                     nrow=length(coyu_parameters$candidates),
+                     ncol=length(alpha_names),
+                     dimnames=list(coyu_parameters$candidates,alpha_names)
+                     ),
+              1,
+              as.list)
+
+    all_thresholds = all_thresholds[ match(all_candidate_summary$AFP, names(all_thresholds))]
+      
     sd_symbols<-mapply(function(value,thresholds) {
       if (is.na(value)) {
         return("");
@@ -122,46 +143,58 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
       }
       return("")
     },
-    candidate_summary[,"Adj_LogSD"],
-    apply(matrix(sapply(results_col[alpha_names], 
-                        function(character_results) { character_results$candidates$candidate_coyu_threshold }),
-                 nrow=length(coyu_parameters$candidates),
-                 ncol=length(alpha_names),
-                 dimnames=list(coyu_parameters$candidates,alpha_names)
-    ),
-    1,
-    as.list)
-    )             
+    all_candidate_summary[,"adjusted_logSD"],
+    all_thresholds)              
+
+    extrap_symbol_func = function(extrp_val) {
+        if (!missing(extrp_val) && !is.na(extrp_val)) {
+            if (extrp_val > 1.2 && extrp_val <= 1.5) {
+                return (c("!"))
+            } else if (extrp_val > 1.5) {
+                return (c("$"))
+            }
+        }
+        return (c(""))
+    }
       
-    extrapolation_symbols = sapply(char_results$candidates$extrapolation_factor,
-                                   function(extrp_val) {
-                                       if (!missing(extrp_val) && !is.na(extrp_val)) {
-                                           if (extrp_val > 1.2 && extrp_val <= 1.5) {
-                                               return (c("!"))
-                                           } else if (extrp_val > 1.5) {
-                                               return (c("$"))
-                                           }
-                                       }
-                                       return (c(""))
-                                   })
+    mean_extrapolation_symbols = sapply(all_candidate_summary[, "extrapolation_factor"],
+                                        extrap_symbol_func)
+
+    yearly_extrapolation_symbols = cbind(all_candidate_summary[ , c("AFP")],
+                                         data.frame(
+                                             apply(all_candidate_summary[ , yearly_extrap_col_names ],
+                                                   2,
+                                                   function(x) { sapply(x, extrap_symbol_func) })
+                                         ),
+                                         data.frame(
+                                             matrix("",
+                                                    nrow=nrow(all_candidate_summary),
+                                                    ncol=length(yearly_logsd_col_names))
+                                         ))
       
-    ## TODO: ideally we'd indicate which years were extrapolated too -
-    ## the data is in COYUS9CharacterResultsDF dataframes      
-    candidate_symbols <- data.frame(AFP=candidate_summary$AFP,
-                                    Variety=c(""),
-                                    Extrapolation=c(""),
-                                    Char_Mean=extrapolation_symbols,
-                                    Adj_LogSD=sd_symbols,
-                                    stringsAsFactors = FALSE, 
-                                    matrix("",
-                                           nrow=nrow(candidate_summary),
-                                           ncol=ncol(candidate_summary)-5))    
+    colnames(yearly_extrapolation_symbols)=c("AFP", yearly_col_names)
     
+      
+    candidate_summary<- all_candidate_summary[ , source_col_list]
+    colnames(candidate_summary)=summary_col_names
+  
+    candidate_symbols <- as.matrix(
+        merge(data.frame(AFP=candidate_summary$AFP,
+                         Variety=c(""),
+                         Extrapolation=c(""),
+                         Char_Mean=mean_extrapolation_symbols,
+                         Adj_LogSD=sd_symbols,
+                         Unadj_Log_SD=c(""),
+                         stringsAsFactors = FALSE),
+              yearly_extrapolation_symbols,
+              by=c("AFP"))
+    )
+                                             
     reference_symbols <- matrix("",nrow=nrow(reference_summary),ncol=ncol(reference_summary))
     
     dimnames(candidate_symbols)<-dimnames(candidate_summary)
     dimnames(reference_symbols)<-dimnames(reference_summary)
-    
+      
     return(list(character_num=results_col["character"],
                 candidate_summary=candidate_summary,
                 reference_summary=reference_summary,
@@ -426,26 +459,34 @@ COYU_print_results.COYUs9AllResults<-function(results,
   }  
   
   write("\n\nCANDIDATE SUMMARY\n",file=connection)
-  
-  candidate_summary<-cbind(AFP=extract_candidate_afp(results),
-                           Variety=extract_candidate_names(results),
-                           matrix(sapply(between_plant_summary,
-                                         function (char_results) {
-                                             apply(char_results$candidate_symbols[,-1],1,
-                                                   function (candidate_row) {
-                                                       ret<-paste(unique(candidate_row),collapse="")
-                                                       if (nchar(ret)==0) {
-                                                           ret<-"_"
-                                                       }
-                                                       return(ret)
-                                                   })
-                                         }),
-                                  nrow=length(coyu_parameters$candidates),
-                                  ncol=length(coyu_parameters$characters)
-                           ))
-  
+    
+  candidate_summary<-as.matrix(
+      merge(cbind(AFP=extract_candidate_afp(results),
+                  Variety=extract_candidate_names(results)),
+            cbind(
+                AFP=between_plant_summary[[1]]$candidate_symbols[,c("AFP")],
+                matrix(sapply(between_plant_summary,
+                              function (char_results) {
+                                  symbol_result =
+                                      apply(char_results$candidate_symbols[,-1],1,
+                                            function (candidate_row) {
+                                                ret<-paste(unique(candidate_row),collapse="")
+                                                if (nchar(ret)==0) {
+                                                    ret<-"_"
+                                                }
+                                                return(ret)
+                                            })
+                              }),
+                       nrow=length(coyu_parameters$candidates),
+                       ncol=length(coyu_parameters$characters)
+                       )
+            ),
+            sort=FALSE,
+            by="AFP")
+  )
+
   colnames(candidate_summary)<-c("AFP", "Variety", sprintf("%02d",extract_characters(results)))
-  
+    
   print_candidate_summary(candidate_summary,connection)
   
   print_symbol_key(symbols_used,probability_set,connection)
