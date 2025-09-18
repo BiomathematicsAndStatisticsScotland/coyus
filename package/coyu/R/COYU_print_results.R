@@ -162,9 +162,12 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
 
     yearly_extrapolation_symbols = cbind(all_candidate_summary[ , c("AFP")],
                                          data.frame(
-                                             apply(all_candidate_summary[ , yearly_extrap_col_names ],
-                                                   2,
-                                                   function(x) { sapply(x, extrap_symbol_func) })
+                                             matrix(
+                                                 apply(all_candidate_summary[ , yearly_extrap_col_names],
+                                                       2,
+                                                       function(x) { sapply(x, extrap_symbol_func ) }),
+                                                 nrow=nrow(all_candidate_summary),
+                                                 ncol=length(yearly_extrap_col_names))
                                          ),
                                          data.frame(
                                              matrix("",
@@ -187,7 +190,8 @@ format_between_plant_summary<-function(coyu_parameters,results,probability_set) 
                          Unadj_Log_SD=c(""),
                          stringsAsFactors = FALSE),
               yearly_extrapolation_symbols,
-              by=c("AFP"))
+              by=c("AFP"),
+              sort=FALSE)
     )
                                              
     reference_symbols <- matrix("",nrow=nrow(reference_summary),ncol=ncol(reference_summary))
@@ -468,11 +472,16 @@ COYU_print_results.COYUs9AllResults<-function(results,
                 matrix(sapply(between_plant_summary,
                               function (char_results) {
                                   symbol_result =
-                                      apply(char_results$candidate_symbols[,-1],1,
+                                      apply(char_results$candidate_symbols[,-1, drop=FALSE],1,
                                             function (candidate_row) {
                                                 ret<-paste(unique(candidate_row),collapse="")
                                                 if (nchar(ret)==0) {
                                                     ret<-"_"
+                                                }
+                                                ## Suppress excess extrapolation symbols
+                                                if ("!" %in% unique(candidate_row) &&
+                                                    "$" %in% unique(candidate_row)) {
+                                                    ret=gsub("!","",ret)
                                                 }
                                                 return(ret)
                                             })
