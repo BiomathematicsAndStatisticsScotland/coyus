@@ -218,7 +218,11 @@ test_that("Single candidate trial - local data",{
   the_con<-textConnection("text_con", open="w")
   params<-COYU_parameters_from_df(candidates=c(109),trial_data=test_2_year$trial_data)
   res1<-COYU_all_results(coyu_parameters=params,probability_sets=test_2_year$probability_sets,trial_data=test_2_year$trial_data)
-  COYU_print_results(res1[[1]],params,test_2_year$character_key,test_2_year$probability_sets[1,],connection=the_con)
+  COYU_print_results(res1[[1]],
+                     params,
+                     test_2_year$character_key,
+                     test_2_year$probability_sets[1,],
+                     connection=the_con)
   close(the_con)
 })
 

@@ -213,7 +213,7 @@ COYU_sanity_check.COYUs9TrialData<-function(trial_data,
               warning(name," measurements ",paste(names(character_iqr)[character_iqr==0],collapse=",")," in year ",year," have an interquartile range of 0. This is not ideal, but COYUS will still run.")
               return(TRUE)
           } else {
-              warning(name," measurements ",paste(names(character_iqr)[character_iqr==0],collapse=",")," in year ",year," have an interquartile range of 0. This is not allowed. ")
+              warning(name," measurements ",paste(names(character_iqr)[character_iqr==0],collapse=",")," in year ",year," have an interquartile range of 0. This is not allowed ")
               return(FALSE)
           }
       }

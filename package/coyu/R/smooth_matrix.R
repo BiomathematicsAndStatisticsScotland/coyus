@@ -30,13 +30,24 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #' @importFrom stats predict smooth.spline IQR
-smooth_matrix <- function(x, spar ){
+smooth_matrix <- function(x, spar, default_tolerance = 1e-8){
   n <- length(x)
   A <- matrix(0, n, n)
+
+  iqr_result = IQR(x)
+
+  if (iqr_result > 0) {
+      #Base tolerance on IQR if we have an IQR
+      tolerance = 1e-8 * iqr_result
+  }
   
   for(i in 1:n){
     y <- rep(0, n); y[i]=1
-    yi<-predict(smooth.spline(x, y, spar = spar, tol=1e-8 * IQR(x)),x)$y # changed 11.8.14 to avoid problem with duplicates
+    yi<-predict(smooth.spline(x,
+                              y,
+                              spar = spar,
+                              tol = tolerance),
+                x)$y # changed 11.8.14 to avoid problem with duplicates
     A[,i]<- yi 
   }
   (A+t(A))/2
